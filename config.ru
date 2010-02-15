@@ -1,4 +1,4 @@
-require 'boardwalk'
+require "application.rb"
 
 ##
 # Not entirely certain how all of this fits into the program. Looks like 
@@ -28,5 +28,5 @@ set :environment, :development
 set :sessions, true
 set :logging, true
 
-use Boardwalk::Application
+# use Boardwalk::Application
 run Sinatra::Base
