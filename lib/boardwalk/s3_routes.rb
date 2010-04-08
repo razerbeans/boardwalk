@@ -1,8 +1,10 @@
+current = File.join(File.dirname(__FILE__))
 require 'builder'
+require "#{current}/s3_service.rb"
 ##
 # This file will contain routes for the S3 REST API.
 ##
-
+# register Sinatra::AWSHandler
 ##
 # class RService < S3 '/'
 #     def get

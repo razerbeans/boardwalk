@@ -47,7 +47,7 @@ post '/control/login' do
   # IF SUCCESS SET user AND REDIRECT TO buckets
   # ELSE RENDER login FORM
   ##
-  
+
   if check_credentials(login, password)?
     redirect '/control/buckets'
   else
@@ -70,7 +70,7 @@ get '/control/logout' do
   ##
   # IF user IS SET, UNSET user
   ##
-  
+
   login_required
   if session_user.destroy!
     redirect '/control'

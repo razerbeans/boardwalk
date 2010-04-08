@@ -4,7 +4,6 @@ require "application.rb"
 # Not entirely certain how all of this fits into the program. Looks like 
 # command/global ARGs. Most interested in info about ACLS and BUFSIZE.
 ##
-VERSION = "0.0.1"
 BUFSIZE = (4 * 1024)
 STORAGE_PATH = File.join(Dir.pwd, 'storage')
 STATIC_PATH = File.expand_path('views/', File.dirname(__FILE__))
@@ -28,5 +27,5 @@ set :environment, :development
 set :sessions, true
 set :logging, true
 
-# use Boardwalk::Application
+use Boardwalk::Application
 run Sinatra::Base
