@@ -113,6 +113,8 @@ module Sinatra
           # PSEDUO: If the user sent secret string is equal to the user's 
           #         [encrypted] information from the server, user is clear.
           #         otherwise, user is not allowed.
+          @user = User.new(key)
+          server_key = hmac_sha1(options.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
           if(secret == server_key)
             content << "Keys are IDENTICAL!\n"
           else
