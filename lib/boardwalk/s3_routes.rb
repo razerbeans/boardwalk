@@ -1,6 +1,23 @@
 current = File.join(File.dirname(__FILE__))
 require 'builder'
 require "#{current}/s3_service.rb"
+
+aws_authenticate
+
+class Bucket
+  def initialize
+    @name = rand(1000)
+    @created_at = Time.local(2000,1,1,20,15,1)
+  end
+  
+  def name
+    @name
+  end
+  
+  def created_at
+    @created_at
+  end
+end
 ##
 # This file will contain routes for the S3 REST API.
 ##
@@ -37,7 +54,10 @@ get '/' do
   #           the only_authorized method?
   # only_authorized
   # Basically find all the buckets associated with the user
-  buckets = Bucket.find(:all)
+  buckets = []
+  rand(10).times do 
+    buckets << Bucket.new # Bucket.find(:all)
+  end
   
   # Render XML that is used by the S3 API making call.
   # TODO: Use builder to generate XML.
