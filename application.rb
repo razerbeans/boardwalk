@@ -1,16 +1,20 @@
-LOCATION = File.join(File.dirname(__FILE__))
+$:.unshift "./lib"
 require 'rubygems'
 require 'sinatra'
 require 'mongo'
 require 'mongo_mapper'
-require "#{LOCATION}/lib/boardwalk.rb"
+require 'boardwalk'
 
-set :s3key, '44CF9590006BF252F707'
-set :s3secret, 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
-set :server, %w[mongrel webrick thin]
-set :port, 3002
-set :logging, true
-set :show_exceptions, false
+set :environment, :development
+
+configure :development do
+  set :s3key, '44CF9590006BF252F707'
+  set :s3secret, 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
+  set :server, %w[mongrel webrick thin]
+  set :port, 3002
+  set :logging, true
+  set :show_exceptions, false
+end
 
 # BUFSIZE = (4 * 1024)
 # STORAGE_PATH = File.join(Dir.pwd, 'storage')
@@ -28,5 +32,4 @@ RESOURCE_TYPES = %w[acl torrent]
 # READABLE_BY_AUTH = 0040
 # WRITABLE_BY_AUTH = 0020
 
-# use Boardwalk::Application
-Boardwalk.run!
+Boardwalk.run
