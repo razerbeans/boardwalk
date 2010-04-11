@@ -15,7 +15,7 @@ get '/control' do
   login_required
   redirect '/control/buckets'
 end
-
+=begin
 ##
 # class CLogin < R '/control/login'
 #   include Camping::Session, ParkPlace::Base
@@ -460,3 +460,4 @@ get %r{/control/s/(.+)} do
   # Not entirely sure what all is needed here. Most likely other ways to do it
   # with rack.
 end
+=end

@@ -42,7 +42,6 @@ module Sinatra
           # PSEDUO: If the user sent secret string is equal to the user's 
           #         [encrypted] information from the server, user is clear.
           #         otherwise, user is not allowed.
-          @user = User.new(key)
           # TODO: Remove User.new!
           # @user = Boardwalk::Models::User.find_by_key key
           @user = User.new(key)

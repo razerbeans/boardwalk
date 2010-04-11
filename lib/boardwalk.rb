@@ -8,6 +8,7 @@ require 'boardwalk/models'
 
 class Boardwalk < Sinatra::Base
     register Sinatra::Request::AWSHandler
-    
+    load 'lib/boardwalk/control_routes.rb'
+    load 'lib/boardwalk/helpers.rb'
     load 'lib/boardwalk/s3_routes.rb'
 end

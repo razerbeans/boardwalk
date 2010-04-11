@@ -11,6 +11,7 @@ set :environment, :development
 configure do
   set :server, %w[mongrel webrick]
   set :port, 3002
+  set :sessions, true
 end
 
 configure :development do
@@ -20,11 +21,19 @@ configure :development do
   # set :port, 3002
   set :logging, true
   set :show_exceptions, false
+  
+  MongoMapper.database = 'boardwalk_dev'
 end
 
 configure :production do
   set :logging, false
   set :show_exceptions, false
+  
+  MongoMapper.database = 'boardwalk'
+end
+
+configure :test do
+  MongoMapper.database = 'boardwalk_test'
 end
 
 # BUFSIZE = (4 * 1024)
