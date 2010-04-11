@@ -4,6 +4,7 @@ require 'sinatra'
 require 'mongo'
 require 'mongo_mapper'
 require 'boardwalk'
+require 'haml'
 
 set :environment, :development
 
