@@ -1,0 +1,34 @@
+%html
+	%head
+		%title
+			Boardwalk Control Center :: 
+			-if @title
+				= @title
+		%script{:language => 'javascript', :src => '/js/jquery.js'}
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/control.css'}
+	%body
+		#page
+			-if @user and not @login
+				.menu
+					%ul
+						%li
+							%a{:href => 'control/buckets'}
+								Buckets
+						-if @user and @user.superuser?
+							%li
+								%a{:href => 'control/users'}
+									Users
+						%li
+							%a{:href => 'control/profile'}
+								Profile
+						%li
+							%a{:href => 'control/logout'}
+								Logout
+			.header
+				%h1
+					Boardwalk
+				%h2
+					-if @title
+						= @title
+			.content
+				= yield

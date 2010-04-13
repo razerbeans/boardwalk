@@ -1,0 +1,40 @@
+-if @buckets.any?
+%table
+	%thead
+		%th "Name"
+		%th "Contains"
+		%th "Updated on"
+		%th "Permission"
+		%th "Actions"
+	%tbody
+		-@buckets.each do |bucket|
+			%tr
+				%th { a bucket.name, :href => R(CFiles, bucket.name) }
+				%td "#{bucket.total_children rescue 0} files"
+				%td bucket.updated_at
+				%td bucket.access_readable
+				%td { a "Delete", :href => R(CDeleteBucket, bucket.name), :onClick => POST, :title => "Delete bucket #{bucket.name}" }
+-else
+	%p
+		A sad day. You have no buckets yet.
+	%h3
+		Create a Bucket
+	%form{:method => 'post', :class => 'create'}
+    -# errors_for @bucket
+		%input{:name => 'bucket[owner_id]', :type => 'hidden', :value => @bucket.owner_id}
+    .required
+			%label{:for => 'bucket[name]'}
+				Bucket Name
+			%input{:name => 'bucket[name]', :type => 'text', :value => @bucket.name}
+    .required
+			%label{:for => 'bucket[access]'}
+				Permissions
+			%select{:name => 'bucket[access]'}
+				-CANNED_ACLS.sort.each do |acl, perm|
+					-if perm == @bucket.access
+						%option{:value => perm, :selected => true}
+							= acl
+					-else
+						%option{:value => perm}
+							= acl
+			%input{:type => "submit", :name => "newbucket", :value => "Create"}

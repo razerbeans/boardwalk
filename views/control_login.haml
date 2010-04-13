@@ -1,0 +1,11 @@
+%form{:method => 'post', :class => 'create'}
+	-# Form errors should go here
+	.required
+		%label{:for => 'login'}
+			User
+		%input{:name => 'login', :type => 'text'}
+	.required
+		%label{:for => 'password'}
+			Password
+		%input{:name => 'password', :type => 'password'}
+	%input{:name => 'loggo', :type => 'submit', :value => "Login"}

@@ -5,7 +5,6 @@ helpers do
   
   def login_required
     if !session[:user]
-      403
       redirect '/control/login'
     end
   end

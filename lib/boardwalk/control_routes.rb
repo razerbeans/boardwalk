@@ -11,11 +11,11 @@
 #     end
 # end
 ##
-get '/control' do
+get '/control/?' do
   login_required
   redirect '/control/buckets'
 end
-=begin
+
 ##
 # class CLogin < R '/control/login'
 #   include Camping::Session, ParkPlace::Base
@@ -23,8 +23,10 @@ end
 #         render :control, "Login", :login
 #     end
 get '/control/login' do
+  @title = 'Login'
   haml :control_login
 end
+=begin
 #     def post
 #         @login = true
 #         @user = User.find_by_login @input.login

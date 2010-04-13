@@ -26,8 +26,7 @@ end
 module Sinatra
   class Request
     module AWSHandler
-      def aws_authenticate
-        before {
+        def aws_authenticate
           puts "Should do env loop."
           @env.each do |k, v|
             puts "Running env loop. (#{k}, #{v})"
@@ -48,13 +47,12 @@ module Sinatra
           if @user and secret != hmac_sha1(options.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
             raise BadAuthentication
           end
-        }
-      end
-      
-      def hmac_sha1(key, s)
-        return Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), key, s)).strip
-      end     
+        end
+      private
+        def hmac_sha1(key, s)
+          return Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), key, s)).strip
+        end     
     end
   end
-  register Request::AWSHandler
+  helpers Request::AWSHandler
 end

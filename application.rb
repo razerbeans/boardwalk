@@ -17,10 +17,8 @@ end
 configure :development do
   set :s3key, '44CF9590006BF252F707'
   set :s3secret, 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
-  # set :server, %w[mongrel webrick]
-  # set :port, 3002
   set :logging, true
-  set :show_exceptions, false
+  set :show_exceptions, true
   
   MongoMapper.database = 'boardwalk_dev'
 end

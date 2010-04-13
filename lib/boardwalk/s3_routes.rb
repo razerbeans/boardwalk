@@ -2,11 +2,9 @@ current = File.join(File.dirname(__FILE__))
 require 'builder'
 require "#{current}/s3_service.rb"
 
-aws_authenticate
-
 class Bucket
   def initialize
-    @name = rand(1000)
+    @name = rand(999) + 1
     @created_at = Time.local(2000,1,1,20,15,1)
   end
   
@@ -18,10 +16,11 @@ class Bucket
     @created_at
   end
 end
+
 ##
 # This file will contain routes for the S3 REST API.
 ##
-# register Sinatra::AWSHandler
+
 ##
 # class RService < S3 '/'
 #     def get
@@ -48,14 +47,16 @@ end
 # end
 ##
 get '/' do
-  content_type("application/xml")
+  aws_authenticate
+  content_type "application/xml"
   # I'm assuming this checks the keys that the user is using for the API call.
   # Question: How do we set the user istance variable for this? Passthrough 
   #           the only_authorized method?
   # only_authorized
   # Basically find all the buckets associated with the user
   buckets = []
-  rand(10).times do 
+  seed = rand(9) + 1
+  seed.times do 
     buckets << Bucket.new # Bucket.find(:all)
   end
   
@@ -97,6 +98,7 @@ end
 #         r(200, '', 'Location' => @env.PATH_INFO, 'Content-Length' => 0)
 #     end
 put %r{/([^\/]+)/?} do
+  aws_authenticate
   only_authorized
   bucket_name = params[:capture].first
   bucket = Bucket.find_root(bucket_name)
