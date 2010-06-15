@@ -2,7 +2,7 @@ current = File.join(File.dirname(__FILE__))
 require 'builder'
 require "#{current}/s3_service.rb"
 
-class Bucket
+class FakeBucket
   def initialize
     @name = rand(999) + 1
     @created_at = Time.local(2000,1,1,20,15,1)
@@ -52,16 +52,15 @@ get '/' do
   # I'm assuming this checks the keys that the user is using for the API call.
   # Question: How do we set the user istance variable for this? Passthrough 
   #           the only_authorized method?
-  # only_authorized
+  only_authorized
   # Basically find all the buckets associated with the user
-  buckets = []
-  seed = rand(9) + 1
-  seed.times do 
-    buckets << Bucket.new # Bucket.find(:all)
-  end
-  
+  # buckets = []
+  # seed = rand(9) + 1
+  # seed.times do 
+  #   buckets << FakeBucket.new # Bucket.find(:all)
+  # end
+  buckets = @user.buckets
   # Render XML that is used by the S3 API making call.
-  # TODO: Use builder to generate XML.
   # NOTE: This could be done in an external .builder file, however I'm not sure
   #       how well instance variables can be passed this way. But external 
   #       files may allow the routes themselves to load faster since there 
@@ -77,7 +76,7 @@ get '/' do
           buckets.each do |b|
               x.Bucket do
                   x.Name b.name
-                  x.CreationDate b.created_at.getgm.iso8601
+                  x.CreationDate b.created_at#.getgm.iso8601
               end
           end
       end
@@ -100,9 +99,12 @@ end
 put %r{/([^\/]+)/?} do
   aws_authenticate
   only_authorized
-  bucket_name = params[:capture].first
+  bucket_name = params[:capture]#.first
   bucket = Bucket.find_root(bucket_name)
-  only_owner_of(bucket)
+  if !bucket
+    @user.buckets.create(:name => params[:capture], :owner_id => @user.id)
+  end
+  # only_owner_of(bucket)
 end
 #     def delete(bucket_name)
 #         bucket = Bucket.find_root(bucket_name)

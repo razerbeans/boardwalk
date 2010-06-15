@@ -8,20 +8,20 @@ require 'hmac-sha1'
 # TODO: Removed User class from this document once implementing database 
 #       handler.
 ##
-class User
-  def initialize(key)
-    @login = 'testuser'
-    @key = key
-  end
-  
-  def key
-    @key
-  end
-  
-  def login
-    @login
-  end
-end
+# class User
+#   def initialize(key)
+#     @login = 'testuser'
+#     @key = key
+#   end
+#   
+#   def key
+#     @key
+#   end
+#   
+#   def login
+#     @login
+#   end
+# end
 
 module Sinatra
   class Request
@@ -43,8 +43,10 @@ module Sinatra
           #         otherwise, user is not allowed.
           # TODO: Remove User.new!
           # @user = Boardwalk::Models::User.find_by_key key
-          @user = User.new(key)
-          if @user and secret != hmac_sha1(options.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
+          # @user = User.new(key)
+          # if @user and secret != hmac_sha1(options.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
+          @user = User.first(:s3key => key)
+          if @user and secret != hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
             raise BadAuthentication
           end
         end

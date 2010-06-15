@@ -4,6 +4,7 @@ require 'sinatra'
 require 'dm-core'
 require 'dm-timestamps'
 require 'dm-validations'
+require 'dm-migrations'
 require 'boardwalk'
 require 'haml'
 
@@ -20,7 +21,7 @@ configure :development do
   set :s3secret, 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
   set :logging, true
   set :show_exceptions, true
-  DataMapper.setup(:default, 'mysql://root:into3ternity@localhost/boardwalk_development')
+  # DataMapper.auto_migrate!
 end
 
 configure :production do

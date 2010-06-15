@@ -8,4 +8,8 @@ helpers do
       redirect '/control/login'
     end
   end
+  
+  def only_authorized
+    raise AccessDenied unless @user
+  end
 end
