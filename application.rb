@@ -1,8 +1,9 @@
 $:.unshift "./lib"
 require 'rubygems'
 require 'sinatra'
-require 'mongo'
-require 'mongo_mapper'
+require 'dm-core'
+require 'dm-timestamps'
+require 'dm-validations'
 require 'boardwalk'
 require 'haml'
 
@@ -19,19 +20,17 @@ configure :development do
   set :s3secret, 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
   set :logging, true
   set :show_exceptions, true
-  
-  MongoMapper.database = 'boardwalk_dev'
+  DataMapper.setup(:default, 'mysql://root:into3ternity@localhost/boardwalk_development')
 end
 
 configure :production do
   set :logging, false
   set :show_exceptions, false
-  
-  MongoMapper.database = 'boardwalk'
+  DataMapper.setup(:default, 'mysql://root:into3ternity@localhost/boardwalk_production')
 end
 
 configure :test do
-  MongoMapper.database = 'boardwalk_test'
+  DataMapper.setup(:default, 'mysql://root:into3ternity@localhost/boardwalk_test')
 end
 
 # BUFSIZE = (4 * 1024)

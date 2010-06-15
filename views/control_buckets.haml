@@ -1,19 +1,31 @@
 -if @buckets.any?
 %table
 	%thead
-		%th "Name"
-		%th "Contains"
-		%th "Updated on"
-		%th "Permission"
-		%th "Actions"
+		%th
+			Name
+		%th
+			Contains
+		%th
+			Updated on
+		%th
+			Permission
+		%th
+			Actions
 	%tbody
 		-@buckets.each do |bucket|
 			%tr
-				%th { a bucket.name, :href => R(CFiles, bucket.name) }
-				%td "#{bucket.total_children rescue 0} files"
-				%td bucket.updated_at
-				%td bucket.access_readable
-				%td { a "Delete", :href => R(CDeleteBucket, bucket.name), :onClick => POST, :title => "Delete bucket #{bucket.name}" }
+				%th
+					%a{:href => '/control/buckets/' + bucket.name}
+						= bucket.name
+				%td
+					= bucket.total_children rescue 0
+					&nbsp;files
+				%td
+					= bucket.updated_at
+				%td
+					= bucket.access_readable
+				%td
+					%a{:href => '/control/delete/' + bucket.name, :onClick => POST, :title => "Delete bucket #{bucket.name}" }
 -else
 	%p
 		A sad day. You have no buckets yet.
