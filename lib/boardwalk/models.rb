@@ -97,6 +97,6 @@ end
 
 DataMapper.auto_migrate!
 # DataMapper.auto_upgrade!
-user = User.new(:login => "admin", :password => "passw0rd1", :s3key => "44CF9590006BF252F707", :s3secret => "OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV", :superuser => 1)
+user = User.new(:login => "admin", :password => "pass@word1", :s3key => "44CF9590006BF252F707", :s3secret => "OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV", :superuser => 1)
 user.buckets.new(:name => "_adminbucket")
 user.save

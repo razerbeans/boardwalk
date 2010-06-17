@@ -11,7 +11,7 @@ require 'haml'
 set :environment, :development
 
 configure do
-  set :server, %w[mongrel webrick]
+  set :server, %w[thin mongrel webrick]
   set :port, 3002
   set :sessions, true
 end
@@ -21,7 +21,6 @@ configure :development do
   set :s3secret, 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
   set :logging, true
   set :show_exceptions, true
-  # DataMapper.auto_migrate!
 end
 
 configure :production do
@@ -35,7 +34,7 @@ configure :test do
 end
 
 # BUFSIZE = (4 * 1024)
-# STORAGE_PATH = File.join(Dir.pwd, 'storage')
+STORAGE_PATH = File.join(Dir.pwd, 'storage')
 # STATIC_PATH = File.expand_path('views/', File.dirname(__FILE__))
 RESOURCE_TYPES = %w[acl torrent]
 CANNED_ACLS = {
