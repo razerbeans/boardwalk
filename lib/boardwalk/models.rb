@@ -31,7 +31,6 @@ end
 class Bucket
   include MongoMapper::EmbeddedDocument
   
-  # key :id,         Serial
   key :lft,        Integer
   key :rgt,        Integer
   key :type,       String,   :length => 6
@@ -45,10 +44,18 @@ class Bucket
   
   # belongs_to :user
   # has n, :bits
+  many :bits
   
   def self.find_root(bucket_name)
     first(:parent_id => '', :name => bucket_name)
   end
+end
+
+class Bit
+  include MongoMapper::EmbeddedDocument
+  plugin Joint
+  
+  attachment :file
 end
 
 # class User

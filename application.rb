@@ -8,11 +8,11 @@ require 'builder'
 require 'boardwalk'
 require 'haml'
 require 'mongo_mapper'
+require 'joint'
 require 'openssl'
 require 'base64'
 # require 'lib/hmac-sha1'
 require 'boardwalk/mimetypes'
-require 'boardwalk/s3_service'
 require 'boardwalk/models'
 
 set :environment, :development

@@ -1,5 +1,4 @@
 current = File.join(File.dirname(__FILE__))
-require "#{current}/s3_service.rb"
 
 class FakeBucket
   def initialize
