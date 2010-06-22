@@ -1,17 +1,28 @@
 $:.unshift "./lib"
+# $:.unshift File.dirname(__FILE__)
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
 require 'sinatra'
-require 'dm-core'
-require 'dm-timestamps'
-require 'dm-validations'
-require 'dm-migrations'
+require 'builder'
+# require 'dm-core'
+# require 'dm-timestamps'
+# require 'dm-validations'
+# require 'dm-migrations'
 require 'boardwalk'
 require 'haml'
+require 'mongo_mapper'
+require 'openssl'
+require 'base64'
+# require 'lib/hmac-sha1'
+require 'boardwalk/mimetypes'
+require 'boardwalk/s3_service'
+require 'boardwalk/models'
 
 set :environment, :development
 
 configure do
-  set :server, %w[thin mongrel webrick]
+  set :server, %w[mongrel webrick thin]
   set :port, 3002
   set :sessions, true
 end
@@ -26,16 +37,12 @@ end
 configure :production do
   set :logging, false
   set :show_exceptions, false
-  DataMapper.setup(:default, 'mysql://root:into3ternity@localhost/boardwalk_production')
 end
 
 configure :test do
-  DataMapper.setup(:default, 'mysql://root:into3ternity@localhost/boardwalk_test')
 end
 
-# BUFSIZE = (4 * 1024)
-STORAGE_PATH = File.join(Dir.pwd, 'storage')
-# STATIC_PATH = File.expand_path('views/', File.dirname(__FILE__))
+BUFSIZE = (4 * 1024)
 RESOURCE_TYPES = %w[acl torrent]
 CANNED_ACLS = {
     'private' => 0600,

@@ -1,5 +1,4 @@
 current = File.join(File.dirname(__FILE__))
-require 'builder'
 require "#{current}/s3_service.rb"
 
 class FakeBucket
@@ -69,7 +68,7 @@ get '/' do
     x.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8"
     x.ListAllMyBucketsResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
       x.Owner do
-          x.ID @user.key
+          x.ID @user.s3key
           x.DisplayName @user.login
       end
       x.Buckets do
