@@ -5,7 +5,8 @@ module Sinatra
           # puts "Should do env loop."
           @env.each do |k, v|
             # puts "Running env loop. (#{k}, #{v})"
-            k = k.downcase.gsub('_', '-')
+            # k = k.downcase.gsub('_', '-')
+            k = k.gsub('_', '-')
             @amz[$1] = v.strip if k =~ /^http-x-amz-([-\w]+)$/
           end
           date = (@env['HTTP_X_AMZ_DATE'] || @env['HTTP_DATE'])

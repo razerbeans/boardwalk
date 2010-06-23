@@ -18,7 +18,8 @@ require 'boardwalk/models'
 set :environment, :development
 
 configure do
-  set :server, %w[mongrel webrick thin]
+  # set :server, %w[mongrel webrick thin]
+  set :server, %w[thin webrick mongrel]
   set :port, 3002
   set :sessions, true
 end
