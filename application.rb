@@ -1,17 +1,17 @@
 $:.unshift "./lib"
-# $:.unshift File.dirname(__FILE__)
 require 'rubygems'
 require 'bundler'
 Bundler.setup(:default)
 require 'sinatra'
 require 'builder'
+require 'fiber'
+require 'rack/fiber_pool'
 require 'boardwalk'
 require 'haml'
 require 'mongo_mapper'
 require 'joint'
 require 'openssl'
 require 'base64'
-# require 'lib/hmac-sha1'
 require 'boardwalk/mimetypes'
 require 'boardwalk/models'
 

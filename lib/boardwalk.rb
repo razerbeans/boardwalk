@@ -36,6 +36,8 @@ module Sinatra
 end
 
 class Boardwalk < Sinatra::Base
+    use Rack::FiberPool
+  
     helpers Sinatra::Request::AWSHandler
     load 'lib/boardwalk/control_routes.rb'
     load 'lib/boardwalk/helpers.rb'
