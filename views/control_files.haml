@@ -1,0 +1,50 @@
+%p
+	Click on a file name to get file and torrent details.
+%table
+	%caption
+		%a{:href => '/control/buckets'}
+			&larr; Buckets
+	%thead
+		%th
+			File
+		%th
+			Size
+		%th
+			Permission
+	%tbody
+		- @files.each do |file|
+			%tr
+				%th
+					%a{:href => "javascript://", :onclick => "$('#details-#{file.id}').toggle()"}
+						= file.name
+					%div.details{:id => "details-#{file.id}"}
+						%p
+							Last modified on #{file.updated_at}
+						%p
+							%a{:href => '/control/delete/'+@bucket.name+'/'+file.name, :onClick => POST, :title => "Delete file #{file.name}")
+								"Delete"
+				%td
+					= number_to_human_size(file.obj.size)
+				%td
+					= file.access_readable
+%h3
+	"Upload a File"
+%form{:action => "?upload_id=#{Time.now.to_f}", :method => 'post', :enctype => 'multipart/form-data', :class => 'create'}
+	%div.required
+		%input{:name => 'upfile', :type => 'file'}
+	%div.optional
+		%label
+			File Name
+		%input{:name => 'fname', :type => 'text'}
+	%div.required
+		%label{:for => 'facl'}
+			'Permissions'
+		%select{:name => 'facl'}
+			- CANNED_ACLS.sort.each do |acl, perm|
+				- if perm == @bucket.access
+					%option{:value => "#{perm}", :selected => true}
+						= acl
+				- else
+					%option{:value => "#{perm}"}
+						= acl
+	%input.newfile{:type => 'submit', :value => "Create"}

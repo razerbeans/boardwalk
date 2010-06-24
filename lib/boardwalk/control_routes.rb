@@ -3,14 +3,6 @@
 # and control.
 ##
 
-##
-# class CHome < R '/control'
-#     login_required
-#     def get
-#         redirect CBuckets
-#     end
-# end
-##
 get '/control/?' do
   login_required
   redirect '/control/buckets'
@@ -22,11 +14,10 @@ end
 #     def get
 #         render :control, "Login", :login
 #     end
-get '/control/login' do
+get '/control/login/?' do
   @title = 'Login'
   haml :control_login
 end
-=begin
 #     def post
 #         @login = true
 #         @user = User.find_by_login @input.login
@@ -46,19 +37,23 @@ end
 post '/control/login' do
   ##
   # CHECK SUBMITTED FORM
-  # IF SUCCESS SET user AND REDIRECT TO buckets
-  # ELSE RENDER login FORM
+  # IF SUCCESS 
+  #   SET user AND REDIRECT TO buckets
+  # ELSE 
+  #   RENDER login form
   ##
-
-  if check_credentials(login, password)?
+  puts params.inspect
+  if check_credentials(params[:login], params[:password])
+    puts 'Hmmmm...'
     redirect '/control/buckets'
   else
-    haml :login
+    @title = "Login"
+    haml :control_login
   end
 end
 # end
 ##
-
+=begin
 ##
 # class CLogout < R '/control/logout'
 #     login_required
@@ -80,6 +75,7 @@ get '/control/logout' do
     "An error occured!"
   end
 end
+=end
 
 ##
 # class CBuckets < R '/control/buckets'
@@ -111,7 +107,7 @@ get '/control/buckets' do
   # TODO: Create global layout to contain :control [seen in 
   # 'control.rb': ParkPlace::Views.control()] and layout for bucket content 
   # [seen in 'control.rb': ParkPlace::Views.control_buckets]
-  haml :control_bucket
+  haml :control_buckets
 end
 
 #     def post
@@ -129,7 +125,7 @@ post '/control/buckets' do
 end
 # end
 ##
-
+=begin
 ##
 # class CFiles < R '/control/buckets/([^\/]+)'
 #     login_required
@@ -149,7 +145,10 @@ get %r{/control/buckets/([^\/]+)} do
   only_can_read @bucket
   # Pull all the files in the bucket. Probably will ignore torrenting.
   # TODO: Find out wth is a Slot?
-  @files = Slot.find(:all)
+  # Looks like Slots are the placeholders for the physical locations of files 
+  # on the machine. Since this will be stored in mongodb, slot simply needs
+  # to BE the actual file.
+  @files = @bucket.slots.find(:all)
   haml :control_files
 end
 #     def post(bucket_name)

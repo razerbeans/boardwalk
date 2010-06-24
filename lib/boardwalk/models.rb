@@ -18,40 +18,81 @@ class User
   
   many :buckets
   
-  def authenticate(login, password)
-    user = User.get(:login => login)
-    if user.password == hmac_sha1(password, user.secret)
-      return user
-    else
-      return nil
+  before_save :convert_pass
+  after_save :revert_pass
+  private
+    def hmac_sha1(key, s)
+      return Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), key, s)).strip
     end
-  end
+    def convert_pass
+        puts "Before save activated."
+        @password_clean = self.password
+        self.password = hmac_sha1(self.password, self.s3secret)
+    end
+    def revert_pass
+        puts "After save activated."
+        self.password = @password_clean
+    end
 end
 
 class Bucket
   include MongoMapper::EmbeddedDocument
   
-  key :lft,        Integer
-  key :rgt,        Integer
+  # key :lft,        Integer
+  # key :rgt,        Integer
   key :type,       String,   :length => 6
   key :name,       String,   :length => 255, :format => /^[-\w]+$/
   key :created_at, DateTime
   key :updated_at, DateTime
   key :access,     Integer
   key :meta,       String
-  key :parent_id,  Integer
-  key :owner_id,   Integer
+  # key :parent_id,  Integer
+  # key :owner_id,   Integer
   
   # belongs_to :user
   # has n, :bits
-  many :bits
+  many :slots
   
   def self.find_root(bucket_name)
     first(:parent_id => '', :name => bucket_name)
   end
+  
+  def access_readable
+      name, _ = CANNED_ACLS.find { |k, v| v == self.access }
+      if name
+          name
+      else
+          [0100, 0010, 0001].map do |i|
+              [[4, 'r'], [2, 'w'], [1, 'x']].map do |k, v|
+                  (self.access & (i * k) == 0 ? '-' : v )
+              end
+          end.join
+      end
+  end
+  
+  def check_access user, group_perm, user_perm
+      !!( if owned_by?(user) or (user and access & group_perm > 0) or (access & user_perm > 0)
+              true
+          elsif user
+              acl = users.find(user.id) rescue nil
+              acl and acl.access.to_i & user_perm
+          end )
+  end
+  
+  def readable_by? user
+      check_access(user, READABLE_BY_AUTH, READABLE)
+  end
+  
+  def owned_by? user
+      user and owner_id == user.id
+  end
+  
+  def writable_by? user
+      check_access(user, WRITABLE_BY_AUTH, WRITABLE)
+  end
 end
 
-class Bit
+class Slot
   include MongoMapper::EmbeddedDocument
   plugin Joint
   
@@ -125,7 +166,7 @@ end
 
 # DataMapper.auto_migrate!
 # DataMapper.auto_upgrade!
-user = User.new({
+user = User.create({
                     :login => "admin",
                     :password => "pass@word1",
                     :email => "admin@boardwalk",

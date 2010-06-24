@@ -1,4 +1,4 @@
--if @buckets.any?
+-if @buckets
 %table
 	%thead
 		%th
@@ -32,21 +32,23 @@
 	%h3
 		Create a Bucket
 	%form{:method => 'post', :class => 'create'}
-    -# errors_for @bucket
-		%input{:name => 'bucket[owner_id]', :type => 'hidden', :value => @bucket.owner_id}
-    .required
+		-# errors_for @bucket
+		.required
 			%label{:for => 'bucket[name]'}
 				Bucket Name
-			%input{:name => 'bucket[name]', :type => 'text', :value => @bucket.name}
-    .required
+			-if @bucket
+				%input{:name => 'bucket[name]', :type => 'text', :value => @bucket.name}
+			-else
+				%input{:name => 'bucket[name]', :type => 'text'}
+		.required
 			%label{:for => 'bucket[access]'}
 				Permissions
 			%select{:name => 'bucket[access]'}
 				-CANNED_ACLS.sort.each do |acl, perm|
-					-if perm == @bucket.access
+					-if @bucket && perm == @bucket.access
 						%option{:value => perm, :selected => true}
 							= acl
 					-else
 						%option{:value => perm}
 							= acl
-			%input{:type => "submit", :name => "newbucket", :value => "Create"}
+		%input{:type => "submit", :name => "newbucket", :value => "Create"}
