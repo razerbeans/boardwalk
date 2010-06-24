@@ -101,12 +101,14 @@ end
 #     end
 get '/control/buckets' do
   login_required
+  load_buckets
   # When _why uses :control, he uses it as a "universal" layout. :buckets 
   # specifies the content yielded in this "universal" layout.
   #
   # TODO: Create global layout to contain :control [seen in 
   # 'control.rb': ParkPlace::Views.control()] and layout for bucket content 
   # [seen in 'control.rb': ParkPlace::Views.control_buckets]
+  @title="Buckets"
   haml :control_buckets
 end
 

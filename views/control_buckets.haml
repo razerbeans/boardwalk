@@ -1,54 +1,57 @@
--if @buckets
-%table
-	%thead
-		%th
-			Name
-		%th
-			Contains
-		%th
-			Updated on
-		%th
-			Permission
-		%th
-			Actions
-	%tbody
-		-@buckets.each do |bucket|
-			%tr
-				%th
-					%a{:href => '/control/buckets/' + bucket.name}
-						= bucket.name
-				%td
-					= bucket.total_children rescue 0
-					&nbsp;files
-				%td
-					= bucket.updated_at
-				%td
-					= bucket.access_readable
-				%td
-					%a{:href => '/control/delete/' + bucket.name, :onClick => POST, :title => "Delete bucket #{bucket.name}" }
+%br
+-if @buckets && !@buckets.nil?
+	%table
+		%thead
+			%th
+				Name
+			%th
+				Contains
+			%th
+				Updated on
+			%th
+				Permission
+			%th
+				Actions
+		%tbody
+			-@buckets.each do |bucket|
+				%tr
+					%th
+						%a{:href => '/control/buckets/' + bucket.name}
+							= bucket.name
+					%td
+						= bucket.total_children rescue 0
+						&nbsp;files
+					%td
+						= bucket.updated_at
+					%td
+						= bucket.access_readable
+					%td
+						/ Need to make an ajax delete function here.
+						%a{:href => '/control/delete/' + bucket.name, :title => "Delete bucket #{bucket.name}" }
 -else
 	%p
 		A sad day. You have no buckets yet.
-	%h3
-		Create a Bucket
-	%form{:method => 'post', :class => 'create'}
-		-# errors_for @bucket
-		.required
-			%label{:for => 'bucket[name]'}
-				Bucket Name
-			-if @bucket
-				%input{:name => 'bucket[name]', :type => 'text', :value => @bucket.name}
-			-else
-				%input{:name => 'bucket[name]', :type => 'text'}
-		.required
-			%label{:for => 'bucket[access]'}
-				Permissions
-			%select{:name => 'bucket[access]'}
-				-CANNED_ACLS.sort.each do |acl, perm|
-					-if @bucket && perm == @bucket.access
-						%option{:value => perm, :selected => true}
-							= acl
-					-else
-						%option{:value => perm}
-							= acl
-		%input{:type => "submit", :name => "newbucket", :value => "Create"}
+%br
+%h3
+	Create a Bucket
+%form{:method => 'post', :class => 'create'}
+	-# errors_for @bucket
+	.required
+		%label{:for => 'bucket[name]'}
+			Bucket Name
+		-if @bucket
+			%input{:name => 'bucket[name]', :type => 'text', :value => @bucket.name}
+		-else
+			%input{:name => 'bucket[name]', :type => 'text'}
+	.required
+		%label{:for => 'bucket[access]'}
+			Permissions
+		%select{:name => 'bucket[access]'}
+			-CANNED_ACLS.sort.each do |acl, perm|
+				-if @bucket && perm == @bucket.access
+					%option{:value => perm, :selected => true}
+						= acl
+				-else
+					%option{:value => perm}
+						= acl
+	%input{:type => "submit", :name => "newbucket", :value => "Create"}

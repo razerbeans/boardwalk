@@ -10,11 +10,11 @@ helpers do
   end
   
   def only_authorized
-    raise AccessDenied unless @user
+    raise AccessDenied unless current_user
   end
   
   def only_can_read(bucket)
-    raise AccessDenied unless bucket.readable_by? @user
+    raise AccessDenied unless bucket.readable_by? current_user
   end
   
   def check_credentials(username, password)
@@ -35,5 +35,14 @@ helpers do
   
   def hmac_sha1(key, s)
     return Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), key, s)).strip
+  end
+  
+  def load_buckets
+    # First, look up the buckets that are owned by the user.
+    buckets = current_user.buckets
+    # Second, look up the buckets that the user has access to.
+    
+    @buckets = buckets
+    @bucket = Bucket.new(:access => CANNED_ACLS['private'])
   end
 end
