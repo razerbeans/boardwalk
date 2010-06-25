@@ -8,12 +8,14 @@ require 'fiber'
 require 'rack/fiber_pool'
 require 'boardwalk'
 require 'haml'
+require 'mongo'
 require 'mongo_mapper'
 require 'joint'
 require 'openssl'
 require 'base64'
 require 'boardwalk/mimetypes'
 require 'boardwalk/models'
+require 'boardwalk/errors'
 
 set :environment, :development
 

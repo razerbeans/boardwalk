@@ -8,21 +8,21 @@
 		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/control.css'}
 	%body
 		#page
-			-if @user and not @login
+			-if session[:user] && current_user
 				.menu
 					%ul
 						%li
-							%a{:href => 'control/buckets'}
+							%a{:href => '/control/buckets'}
 								Buckets
 						-if @user and @user.superuser?
 							%li
-								%a{:href => 'control/users'}
+								%a{:href => '/control/users'}
 									Users
 						%li
-							%a{:href => 'control/profile'}
+							%a{:href => '/control/profile'}
 								Profile
 						%li
-							%a{:href => 'control/logout'}
+							%a{:href => '/control/logout'}
 								Logout
 			.header
 				%h1

@@ -42,9 +42,7 @@ post '/control/login' do
   # ELSE 
   #   RENDER login form
   ##
-  puts params.inspect
   if check_credentials(params[:login], params[:password])
-    puts 'Hmmmm...'
     redirect '/control/buckets'
   else
     @title = "Login"
@@ -53,7 +51,7 @@ post '/control/login' do
 end
 # end
 ##
-=begin
+
 ##
 # class CLogout < R '/control/logout'
 #     login_required
@@ -67,15 +65,13 @@ get '/control/logout' do
   ##
   # IF user IS SET, UNSET user
   ##
-
   login_required
-  if session_user.destroy!
+  if unset_current_user
     redirect '/control'
   else
     "An error occured!"
   end
 end
-=end
 
 ##
 # class CBuckets < R '/control/buckets'
@@ -104,10 +100,6 @@ get '/control/buckets' do
   load_buckets
   # When _why uses :control, he uses it as a "universal" layout. :buckets 
   # specifies the content yielded in this "universal" layout.
-  #
-  # TODO: Create global layout to contain :control [seen in 
-  # 'control.rb': ParkPlace::Views.control()] and layout for bucket content 
-  # [seen in 'control.rb': ParkPlace::Views.control_buckets]
   @title="Buckets"
   haml :control_buckets
 end
@@ -122,8 +114,15 @@ end
 #         redirect CBuckets
 #     end
 post '/control/buckets' do
-  # TODO: Need to look into MongoDB/MongoMapper to figure out how to handle 
-  # bucket storage.
+  unless current_user.buckets.find(:name => params[:bucket_name])
+    bucket = current_user.buckets.build(:name => params[:bucket_name], :access => params[:bucket_access])
+    unless bucket.save!
+      throw :halt, [500, "Could not create new bucket."]
+    end
+  end
+  load_buckets
+  @title="Buckets"
+  haml :control_buckets
 end
 # end
 ##

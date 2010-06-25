@@ -28,6 +28,7 @@
 					%td
 						/ Need to make an ajax delete function here.
 						%a{:href => '/control/delete/' + bucket.name, :title => "Delete bucket #{bucket.name}" }
+							Delete
 -else
 	%p
 		A sad day. You have no buckets yet.
@@ -37,16 +38,16 @@
 %form{:method => 'post', :class => 'create'}
 	-# errors_for @bucket
 	.required
-		%label{:for => 'bucket[name]'}
+		%label{:for => 'bucket_name'}
 			Bucket Name
 		-if @bucket
-			%input{:name => 'bucket[name]', :type => 'text', :value => @bucket.name}
+			%input{:name => 'bucket_name', :type => 'text', :value => @bucket.name}
 		-else
-			%input{:name => 'bucket[name]', :type => 'text'}
+			%input{:name => 'bucket_name', :type => 'text'}
 	.required
-		%label{:for => 'bucket[access]'}
+		%label{:for => 'bucket_access'}
 			Permissions
-		%select{:name => 'bucket[access]'}
+		%select{:name => 'bucket_access'}
 			-CANNED_ACLS.sort.each do |acl, perm|
 				-if @bucket && perm == @bucket.access
 					%option{:value => perm, :selected => true}

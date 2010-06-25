@@ -1,12 +1,13 @@
-helpers do
-  def current_user_session(user)
-    session[:user] = user
-  end
-  
+helpers do  
   def login_required
-    if !session[:user]
+    if session[:user].nil?
       redirect '/control/login'
     end
+  end
+  
+  def unset_current_user
+    session[:user] = nil
+    return true
   end
   
   def only_authorized
@@ -30,7 +31,7 @@ helpers do
   end
   
   def current_user
-    return session[:user]
+    return User.first(:login => session[:user].login)
   end
   
   def hmac_sha1(key, s)
