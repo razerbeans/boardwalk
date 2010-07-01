@@ -8,40 +8,12 @@ get '/control/?' do
   redirect '/control/buckets'
 end
 
-##
-# class CLogin < R '/control/login'
-#   include Camping::Session, ParkPlace::Base
-#     def get
-#         render :control, "Login", :login
-#     end
 get '/control/login/?' do
   @title = 'Login'
   haml :control_login
 end
-#     def post
-#         @login = true
-#         @user = User.find_by_login @input.login
-#         if @user
-#             if @user.password == hmac_sha1( @input.password, @user.secret )
-#                 @state.user_id = @user.id
-#                 return redirect(CBuckets)
-#             else
-#                 @user.errors.add(:password, 'is incorrect')
-#             end
-#         else
-#             @user = User.new
-#             @user.errors.add(:login, 'not found')
-#         end
-#         render :control, "Login", :login
-#     end
+
 post '/control/login' do
-  ##
-  # CHECK SUBMITTED FORM
-  # IF SUCCESS 
-  #   SET user AND REDIRECT TO buckets
-  # ELSE 
-  #   RENDER login form
-  ##
   if check_credentials(params[:login], params[:password])
     redirect '/control/buckets'
   else
@@ -49,22 +21,8 @@ post '/control/login' do
     haml :control_login
   end
 end
-# end
-##
 
-##
-# class CLogout < R '/control/logout'
-#     login_required
-#     def get
-#         @state.clear
-#         redirect CHome
-#     end
-# end
-##
 get '/control/logout' do
-  ##
-  # IF user IS SET, UNSET user
-  ##
   login_required
   if unset_current_user
     redirect '/control'
@@ -73,29 +31,7 @@ get '/control/logout' do
   end
 end
 
-##
-# class CBuckets < R '/control/buckets'
-#     login_required
-
-# TODO: Need to figure out the logic behind this one. Why does it create a new 
-# bucket?
-# TODO: Figure out if this join will be necessary in MongoDB. I would think
-# that the way in which MongoDB works would make this unnecessary.
-#     def load_buckets
-#         @buckets = Bucket.find_by_sql [%{
-#            SELECT b.*, COUNT(c.id) AS total_children
-#            FROM parkplace_bits b LEFT JOIN parkplace_bits c 
-#                     ON c.parent_id = b.id
-#            WHERE b.parent_id IS NULL AND b.owner_id = ?
-#            GROUP BY b.id ORDER BY b.name}, @user.id]
-#         @bucket = Bucket.new(:owner_id => @user.id, :access => CANNED_ACLS['private'])
-#     end
-
-#     def get
-#         load_buckets
-#         render :control, 'Your Buckets', :buckets
-#     end
-get '/control/buckets' do
+get '/control/buckets/?' do
   login_required
   load_buckets
   # When _why uses :control, he uses it as a "universal" layout. :buckets 
@@ -104,15 +40,6 @@ get '/control/buckets' do
   haml :control_buckets
 end
 
-#     def post
-#         Bucket.find_root(@input.bucket.name)
-#         load_buckets
-#         @bucket.errors.add_to_base("A bucket named `#{@input.bucket.name}' already exists.")
-#         render :control, 'Your Buckets', :buckets
-#     rescue NoSuchBucket
-#         bucket = Bucket.create(@input.bucket)
-#         redirect CBuckets
-#     end
 post '/control/buckets' do
   unless current_user.buckets.find(:name => params[:bucket_name])
     bucket = current_user.buckets.build(:name => params[:bucket_name], :access => params[:bucket_access])
@@ -124,34 +51,26 @@ post '/control/buckets' do
   @title="Buckets"
   haml :control_buckets
 end
-# end
-##
-=begin
-##
-# class CFiles < R '/control/buckets/([^\/]+)'
-#     login_required
-#     def get(bucket_name)
-#         @bucket = Bucket.find_root(bucket_name)
-#         only_can_read @bucket
-#         @files = Slot.find :all, :include => :torrent, 
-#           :conditions => ['parent_id = ?', @bucket.id], :order => 'name'
-#         render :control, "/#{@bucket.name}", :files
-#     end
+
 get %r{/control/buckets/([^\/]+)} do
   # Pull the bucket from the route.
-  bucket = params[:captures].first
   # Find the root of the requested bucket and set as an instance variable.
-  @bucket = Bucket.find(bucket)
+  # @bucket = current_user.buckets.find(:name => "#{params[:captures].first}")
+  current_user.buckets.each do |b|
+    if b.name == params[:captures].first
+      @bucket = b
+    end
+  end
+  puts @bucket.inspect
   # I'm assuming only_can_read is checking read permissions on the bucket.
-  only_can_read @bucket
+  # only_can_read @bucket
   # Pull all the files in the bucket. Probably will ignore torrenting.
-  # TODO: Find out wth is a Slot?
-  # Looks like Slots are the placeholders for the physical locations of files 
-  # on the machine. Since this will be stored in mongodb, slot simply needs
-  # to BE the actual file.
-  @files = @bucket.slots.find(:all)
+  @files = @bucket.slots
+  puts @files.class
+  puts @files.inspect
   haml :control_files
 end
+=begin
 #     def post(bucket_name)
 #         bucket = Bucket.find_root(bucket_name)
 #         only_can_write bucket
@@ -180,7 +99,7 @@ end
 #         redirect CFiles, bucket_name
 #     end
 post %r{/control/buckets/([^\/]+)} do
-  # I dread this park. How the heck am I going to test it?
+  # I dread this part. How the heck am I going to test it?
 end
 # end
 ##

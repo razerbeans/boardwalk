@@ -12,21 +12,22 @@
 		%th
 			Permission
 	%tbody
-		- @files.each do |file|
-			%tr
-				%th
-					%a{:href => "javascript://", :onclick => "$('#details-#{file.id}').toggle()"}
-						= file.name
-					%div.details{:id => "details-#{file.id}"}
-						%p
-							Last modified on #{file.updated_at}
-						%p
-							%a{:href => '/control/delete/'+@bucket.name+'/'+file.name, :onClick => POST, :title => "Delete file #{file.name}")
-								"Delete"
-				%td
-					= number_to_human_size(file.obj.size)
-				%td
-					= file.access_readable
+		-if @files and !@files.empty?
+			- @files.each do |file|
+				%tr
+					%th
+						%a{:href => "javascript://", :onclick => "$('#details-#{file.id}').toggle()"}
+							= file.name
+						%div.details{:id => "details-#{file.id}"}
+							%p
+								Last modified on #{file.updated_at}
+							%p
+								%a{:href => '/control/delete/'+@bucket.name+'/'+file.name, :title => "Delete file #{file.name}"}
+									"Delete"
+					%td
+						= number_to_human_size(file.obj.size)
+					%td
+						= file.access_readable
 %h3
 	"Upload a File"
 %form{:action => "?upload_id=#{Time.now.to_f}", :method => 'post', :enctype => 'multipart/form-data', :class => 'create'}
@@ -41,7 +42,7 @@
 			'Permissions'
 		%select{:name => 'facl'}
 			- CANNED_ACLS.sort.each do |acl, perm|
-				- if perm == @bucket.access
+				- if @bucket && perm == @bucket.access
 					%option{:value => "#{perm}", :selected => true}
 						= acl
 				- else

@@ -1,5 +1,6 @@
 MongoMapper.connection = Mongo::Connection.new('localhost')
 MongoMapper.database = 'boardwalk_development'
+
 class User
   include MongoMapper::Document
   
@@ -38,19 +39,16 @@ class Bucket
   
   key :type,       String,   :length => 6
   key :name,       String,   :length => 255, :format => /^[-\w]+$/
-  key :created_at, DateTime
-  key :updated_at, DateTime
+  key :created_at, Time
+  key :updated_at, Time
   key :access,     Integer
   key :meta,       String
   
   validates_uniqueness_of :name
   
+  belongs_to :user
   many :slots
-  
-  def self.find_root(bucket_name)
-    first(:parent_id => '', :name => bucket_name)
-  end
-  
+    
   def access_readable
       name, _ = CANNED_ACLS.find { |k, v| v == self.access }
       if name
@@ -63,27 +61,24 @@ class Bucket
           end.join
       end
   end
-  
-  def check_access user, group_perm, user_perm
+  def self.readable_by? bucket
+      check_access(bucket.user, READABLE_BY_AUTH, READABLE)
+  end
+  def self.owned_by? user
+      user and owner_id == user.id
+  end
+  def self.writable_by? user
+      check_access(user, WRITABLE_BY_AUTH, WRITABLE)
+  end
+  private
+    def check_access user, group_perm, user_perm
       !!( if owned_by?(user) or (user and access & group_perm > 0) or (access & user_perm > 0)
               true
           elsif user
               acl = users.find(user.id) rescue nil
               acl and acl.access.to_i & user_perm
           end )
-  end
-  
-  def readable_by? user
-      check_access(user, READABLE_BY_AUTH, READABLE)
-  end
-  
-  def owned_by? user
-      user and owner_id == user.id
-  end
-  
-  def writable_by? user
-      check_access(user, WRITABLE_BY_AUTH, WRITABLE)
-  end
+    end
 end
 
 class Slot
@@ -91,6 +86,8 @@ class Slot
   plugin Joint
   
   attachment :file
+  
+  belongs_to :bucket
 end
 
 user = User.create({
