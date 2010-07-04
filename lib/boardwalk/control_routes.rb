@@ -61,49 +61,73 @@ get %r{/control/buckets/([^\/]+)} do
       @bucket = b
     end
   end
-  puts @bucket.inspect
   # I'm assuming only_can_read is checking read permissions on the bucket.
   # only_can_read @bucket
   # Pull all the files in the bucket. Probably will ignore torrenting.
   @files = @bucket.slots
-  puts @files.class
-  puts @files.inspect
+  puts @files.first.inspect
   haml :control_files
 end
-=begin
+
 #     def post(bucket_name)
 #         bucket = Bucket.find_root(bucket_name)
 #         only_can_write bucket
 # 
+# =>      This will store the tempfile.
 #         tmpf = @input.upfile.tempfile
+# =>      Variable declaration.
 #         readlen, md5 = 0, MD5.new
+# =>      Read the file in increments of BUFSIZE
 #         while part = tmpf.read(BUFSIZE)
 #             readlen += part.size
 #             md5 << part
 #         end
+# =>      FileInfo is basically a file object for Slot itself.
 #         fileinfo = FileInfo.new
+# =>      Specifies the mime style of the file. Joint will do this.
 #         fileinfo.mime_type = @input.upfile['type'] || "binary/octet-stream"
+# =>      Size of the file obtained via readlen variable. Joint does this.
 #         fileinfo.size = readlen
+# =>      Digest the file into md5
 #         fileinfo.md5 = md5.hexdigest
 # 
+# =>      This is not neccessary since the files will be stored in the database
 #         fileinfo.path = File.join(bucket_name, File.basename(tmpf.path))
 #         fileinfo.path.succ! while File.exists?(File.join(STORAGE_PATH, fileinfo.path))
 #         file_path = File.join(STORAGE_PATH, fileinfo.path)
 #         FileUtils.mkdir_p(File.dirname(file_path))
 #         FileUtils.mv(tmpf.path, file_path)
 # 
+# =>      Use the filename the user supplied unless field was empty, then
+# =>        use the file name of the original file.
 #         @input.fname = @input.upfile.filename if @input.fname.blank?
+# =>      The actual slot that is created for the file.
 #         slot = Slot.create(:name => @input.fname, :owner_id => @user.id, :meta => nil, :obj => fileinfo)
+# =>      Set the access for the file in the slot.
 #         slot.grant(:access => @input.facl.to_i)
+# =>      Adds the slot file to the bucket
 #         bucket.add_child(slot)
 #         redirect CFiles, bucket_name
 #     end
 post %r{/control/buckets/([^\/]+)} do
-  # I dread this part. How the heck am I going to test it?
+  puts params.inspect
+  current_user.buckets.each do |b|
+    if b.name == params[:captures].first
+      @bucket = b
+    end
+  end
+  only_can_write @bucket
+  tempfile = params[:upfile][:tempfile]
+  params[:fname] == '' ? filename = params[:upfile][:filename] : filename = params[:fname]
+  slot = @bucket.slots.build(:file => tempfile.open, :file_name => filename, :access => params[:facl], :created_at => Time.now, :updated_at => Time.now, :md5 => Digest::MD5.hexdigest(tempfile.size.to_s))
+  unless slot.save!
+    throw :halt, [500, "Could not upload file to bucket."]
+  end
+  redirect '/control/buckets/'+@bucket.name
 end
 # end
 ##
-
+=begin
 ##
 # class CFile < R '/control/buckets/([^\/]+?)/(.+)'
 #     login_required

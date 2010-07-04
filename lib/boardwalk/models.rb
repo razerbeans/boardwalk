@@ -37,12 +37,13 @@ end
 class Bucket
   include MongoMapper::EmbeddedDocument
   
-  key :type,       String,   :length => 6
-  key :name,       String,   :length => 255, :format => /^[-\w]+$/
-  key :created_at, Time
-  key :updated_at, Time
-  key :access,     Integer
-  key :meta,       String
+  key :user_id,     String
+  key :type,        String,   :length => 6
+  key :name,        String,   :length => 255, :format => /^[-\w]+$/
+  key :created_at,  Time
+  key :updated_at,  Time
+  key :access,      Integer
+  key :meta,        String
   
   validates_uniqueness_of :name
   
@@ -64,21 +65,21 @@ class Bucket
   def self.readable_by? bucket
       check_access(bucket.user, READABLE_BY_AUTH, READABLE)
   end
-  def self.owned_by? user
-      user and owner_id == user.id
+  def owned_by? current_user
+      current_user and user.login == current_user.login
   end
-  def self.writable_by? user
-      check_access(user, WRITABLE_BY_AUTH, WRITABLE)
+  def writable_by? current_user
+      check_access(current_user, WRITABLE_BY_AUTH, WRITABLE)
   end
-  private
-    def check_access user, group_perm, user_perm
-      !!( if owned_by?(user) or (user and access & group_perm > 0) or (access & user_perm > 0)
+  # private
+  def check_access user, group_perm, user_perm
+      !!( if owned_by?(user) or (user and (access > 0 && group_perm > 0)) or (access > 0 && user_perm > 0)
               true
           elsif user
               acl = users.find(user.id) rescue nil
               acl and acl.access.to_i & user_perm
           end )
-    end
+  end
 end
 
 class Slot
@@ -87,7 +88,25 @@ class Slot
   
   attachment :file
   
+  key :access,      Integer
+  key :updated_at,  Time
+  key :created_at,  Time
+  key :md5,         String
+  
   belongs_to :bucket
+  
+  def access_readable
+      name, _ = CANNED_ACLS.find { |k, v| v == self.access }
+      if name
+          name
+      else
+          [0100, 0010, 0001].map do |i|
+              [[4, 'r'], [2, 'w'], [1, 'x']].map do |k, v|
+                  (self.access & (i * k) == 0 ? '-' : v )
+              end
+          end.join
+      end
+  end
 end
 
 user = User.create({
@@ -101,5 +120,5 @@ user = User.create({
                     :superuser => 1
                   })
 user.password = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), user.password, user.s3secret)).strip
-user.buckets << Bucket.new(:name => "_adminbucket")
+user.buckets << Bucket.new(:name => "_adminbucket", :access => 384)
 user.save
