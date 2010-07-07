@@ -53,53 +53,8 @@ post '/control/buckets' do
   haml :control_buckets
 end
 
-##
-# class CFile < R '/control/buckets/([^\/]+?)/(.+)'
-#     login_required
-#     include ParkPlace::SlotGet
-#     ##
-#     # Here's a dump of ParkPlace::SlotGet
-#     #
-#     # module SlotGet
-#     #   def head(bucket_name, oid)
-#     #       @slot = ParkPlace::Models::Bucket.find_root(bucket_name).find_slot(oid)
-#     #       only_can_read @slot
-#     #   
-#     #       etag = @slot.etag
-#     #       since = Time.httpdate(@env.HTTP_IF_MODIFIED_SINCE) rescue nil
-#     #       raise NotModified if since and @slot.updated_at <= since
-#     #       since = Time.httpdate(@env.HTTP_IF_UNMODIFIED_SINCE) rescue nil
-#     #       raise PreconditionFailed if since and @slot.updated_at > since
-#     #       raise PreconditionFailed if @env.HTTP_IF_MATCH and etag != @env.HTTP_IF_MATCH
-#     #       raise NotModified if @env.HTTP_IF_NONE_MATCH and etag == @env.HTTP_IF_NONE_MATCH
-#     #   
-#     #       headers = {}
-#     #       if @slot.meta
-#     #           @slot.meta.each { |k, v| headers["x-amz-meta-#{k}"] = v }
-#     #       end
-#     #       if @slot.obj.is_a? ParkPlace::Models::FileInfo
-#     #           headers['Content-Type'] = @slot.obj.mime_type
-#     #           headers['Content-Disposition'] = @slot.obj.disposition
-#     #       end
-#     #       headers['Content-Type'] ||= 'binary/octet-stream'
-#     #       r(200, '', headers.merge('ETag' => etag, 'Last-Modified' => @slot.updated_at.httpdate, 'Content-Length' => @slot.obj.size))
-#     #   end
-#     #   def get(bucket_name, oid)
-#     #       head(bucket_name, oid)
-#     #       if @input.has_key? 'torrent'
-#     #           torrent @slot
-#     #       elsif @env.HTTP_RANGE  # ugh, parse ranges
-#     #           raise NotImplemented
-#     #       else
-#     #           case @slot.obj
-#     #           when ParkPlace::Models::FileInfo
-#     #               file_path = File.join(STORAGE_PATH, @slot.obj.path)
-#     #               headers['X-Sendfile'] = file_path
-#     #           else
-#     #               @slot.obj
-#     #           end
-#     #       end
-#     #   end
+# NOTE: This route MUST come before get %r{/control/buckets/([^\/]+)} or things
+#       will break!
 get %r{/control/buckets/([^\/]+?)/(.+)} do
   bucket = current_user.buckets.to_enum.find{|b| b.name == params[:captures][0]}
   slot = bucket.slots.to_enum.find{|s| s.file_name == params[:captures][1]}
@@ -116,37 +71,15 @@ get %r{/control/buckets/([^\/]+?)/(.+)} do
   if request.env['HTTP_IF_NONE_MATCH'] && (slot.md5 == request.env['HTTP_IF_NONE_MATCH'])
     throw :halt, [304, "The request resource has not been modified."]
   end
-  # headers['Content-Type'] = slot.bit_type || "binary/octet-stream"
   if request.env['HTTP_RANGE']
     throw :halt, [501, "A header you provided implies functionality that is not implemented."]
   end
-  # headers['ETag'] = slot.file.server_md5
-  # headers['Last-Modified'] = slot.updated_at.httpdate
-  # headers['Content-Length'] = slot.bit_size.to_s
-  # headers['Content-Disposition'] = "attachment; filename=\"#{slot.file_name}\""
   tempf = Tempfile.new("#{slot.file_name}")
   tempf.puts slot.bit.data
-  puts "* Slot inspection: " + slot.inspect + " *"
-  puts "\t*** " + slot.class.to_s + " ***"
-  puts "* File inspection: " + slot.bit.inspect + " *"
-  puts "\t*** " + slot.bit.class.to_s + " ***"
-  puts "* Grid inspection: " + slot.bit.grid_io.inspect + " *"
-  puts tempf.path
-  # puts slot.bit.grid_io.methods
   send_file(tempf.path, {:disposition => 'attachment', :filename => slot.file_name, :type => slot.bit_type})
   tempf.close!
   status 200
 end
-# OR
-# get %r{/control/buckets/([^\/]+?)/(.+)} do |bucket_name, oid|
-#   # May eliminate need for params[:captures].first, etc.
-#   head(bucket_name, oid)
-#end
-#     #
-#     #
-#     # end
-# end
-##
 
 get %r{/control/buckets/([^\/]+)} do
   login_required
