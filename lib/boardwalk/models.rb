@@ -1,6 +1,13 @@
 MongoMapper.connection = Mongo::Connection.new('localhost')
 MongoMapper.database = 'boardwalk_development'
 
+module IdentityMapAddition 
+  def self.included(model) 
+    model.plugin MongoMapper::Plugins::IdentityMap 
+  end 
+end 
+MongoMapper::Document.append_inclusions(IdentityMapAddition)
+
 class User
   include MongoMapper::Document
   
@@ -35,9 +42,10 @@ class User
 end
 
 class Bucket
-  include MongoMapper::EmbeddedDocument
+  # include MongoMapper::EmbeddedDocument
+  include MongoMapper::Document
   
-  key :user_id,     String
+  key :user_id,     ObjectId
   key :type,        String,   :length => 6
   key :name,        String,   :length => 255, :format => /^[-\w]+$/
   key :created_at,  Time
@@ -83,15 +91,14 @@ class Bucket
 end
 
 class Slot
-  include MongoMapper::EmbeddedDocument
+  # include MongoMapper::EmbeddedDocument
+  include MongoMapper::Document
   plugin Joint
   
-  attachment :file
+  attachment :bit
   
+  key :bucket_id,   ObjectId
   key :access,      Integer
-  key :updated_at,  Time
-  key :created_at,  Time
-  key :md5,         String
   
   belongs_to :bucket
   
@@ -107,6 +114,23 @@ class Slot
           end.join
       end
   end
+  def readable_by? current_user
+      check_access(current_user, READABLE_BY_AUTH, READABLE)
+  end
+  def owned_by? current_user
+      current_user and bucket.user.login == current_user.login
+  end
+  def writable_by? current_user
+      check_access(current_user, WRITABLE_BY_AUTH, WRITABLE)
+  end
+  def check_access user, group_perm, user_perm
+      !!( if owned_by?(user) or (user and (access > 0 && group_perm > 0)) or (access > 0 && user_perm > 0)
+              true
+          elsif user
+              acl = users.find(user.id) rescue nil
+              acl and acl.access.to_i & user_perm
+          end )
+  end
 end
 
 user = User.create({
@@ -120,5 +144,5 @@ user = User.create({
                     :superuser => 1
                   })
 user.password = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), user.password, user.s3secret)).strip
-user.buckets << Bucket.new(:name => "_adminbucket", :access => 384)
+user.buckets.build(:name => "admin_bucket", :access => 384, :created_at => Time.now)# << Bucket.new(:name => "_adminbucket", :access => 384)
 user.save

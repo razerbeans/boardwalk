@@ -20,12 +20,12 @@
 							= file.file_name
 						%div.details{:id => "details-#{file.id}"}
 							%p
-								Last modified on #{file.updated_at}
+								Last modified on #{file.bit.upload_date}
 							%p
 								%a{:href => '/control/delete/'+@bucket.name+'/'+file.file_name, :title => "Delete file #{file.file_name}"}
 									"Delete"
 					%td
-						= file.file_size
+						= file.bit_size
 					%td
 						= file.access_readable
 %h3

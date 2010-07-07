@@ -34,6 +34,7 @@ end
 get '/control/buckets/?' do
   login_required
   load_buckets
+  puts @buckets.inspect
   # When _why uses :control, he uses it as a "universal" layout. :buckets 
   # specifies the content yielded in this "universal" layout.
   @title="Buckets"
@@ -52,82 +53,6 @@ post '/control/buckets' do
   haml :control_buckets
 end
 
-get %r{/control/buckets/([^\/]+)} do
-  # Pull the bucket from the route.
-  # Find the root of the requested bucket and set as an instance variable.
-  # @bucket = current_user.buckets.find(:name => "#{params[:captures].first}")
-  current_user.buckets.each do |b|
-    if b.name == params[:captures].first
-      @bucket = b
-    end
-  end
-  # I'm assuming only_can_read is checking read permissions on the bucket.
-  # only_can_read @bucket
-  # Pull all the files in the bucket. Probably will ignore torrenting.
-  @files = @bucket.slots
-  puts @files.first.inspect
-  haml :control_files
-end
-
-#     def post(bucket_name)
-#         bucket = Bucket.find_root(bucket_name)
-#         only_can_write bucket
-# 
-# =>      This will store the tempfile.
-#         tmpf = @input.upfile.tempfile
-# =>      Variable declaration.
-#         readlen, md5 = 0, MD5.new
-# =>      Read the file in increments of BUFSIZE
-#         while part = tmpf.read(BUFSIZE)
-#             readlen += part.size
-#             md5 << part
-#         end
-# =>      FileInfo is basically a file object for Slot itself.
-#         fileinfo = FileInfo.new
-# =>      Specifies the mime style of the file. Joint will do this.
-#         fileinfo.mime_type = @input.upfile['type'] || "binary/octet-stream"
-# =>      Size of the file obtained via readlen variable. Joint does this.
-#         fileinfo.size = readlen
-# =>      Digest the file into md5
-#         fileinfo.md5 = md5.hexdigest
-# 
-# =>      This is not neccessary since the files will be stored in the database
-#         fileinfo.path = File.join(bucket_name, File.basename(tmpf.path))
-#         fileinfo.path.succ! while File.exists?(File.join(STORAGE_PATH, fileinfo.path))
-#         file_path = File.join(STORAGE_PATH, fileinfo.path)
-#         FileUtils.mkdir_p(File.dirname(file_path))
-#         FileUtils.mv(tmpf.path, file_path)
-# 
-# =>      Use the filename the user supplied unless field was empty, then
-# =>        use the file name of the original file.
-#         @input.fname = @input.upfile.filename if @input.fname.blank?
-# =>      The actual slot that is created for the file.
-#         slot = Slot.create(:name => @input.fname, :owner_id => @user.id, :meta => nil, :obj => fileinfo)
-# =>      Set the access for the file in the slot.
-#         slot.grant(:access => @input.facl.to_i)
-# =>      Adds the slot file to the bucket
-#         bucket.add_child(slot)
-#         redirect CFiles, bucket_name
-#     end
-post %r{/control/buckets/([^\/]+)} do
-  puts params.inspect
-  current_user.buckets.each do |b|
-    if b.name == params[:captures].first
-      @bucket = b
-    end
-  end
-  only_can_write @bucket
-  tempfile = params[:upfile][:tempfile]
-  params[:fname] == '' ? filename = params[:upfile][:filename] : filename = params[:fname]
-  slot = @bucket.slots.build(:file => tempfile.open, :file_name => filename, :access => params[:facl], :created_at => Time.now, :updated_at => Time.now, :md5 => Digest::MD5.hexdigest(tempfile.size.to_s))
-  unless slot.save!
-    throw :halt, [500, "Could not upload file to bucket."]
-  end
-  redirect '/control/buckets/'+@bucket.name
-end
-# end
-##
-=begin
 ##
 # class CFile < R '/control/buckets/([^\/]+?)/(.+)'
 #     login_required
@@ -159,11 +84,6 @@ end
 #     #       headers['Content-Type'] ||= 'binary/octet-stream'
 #     #       r(200, '', headers.merge('ETag' => etag, 'Last-Modified' => @slot.updated_at.httpdate, 'Content-Length' => @slot.obj.size))
 #     #   end
-helpers do
-  def head(bucket_name, oid)
-    # May just be able to copy the logic directly from the aforementioned snip.
-  end
-end
 #     #   def get(bucket_name, oid)
 #     #       head(bucket_name, oid)
 #     #       if @input.has_key? 'torrent'
@@ -181,7 +101,41 @@ end
 #     #       end
 #     #   end
 get %r{/control/buckets/([^\/]+?)/(.+)} do
-  head(params[:capture].first, params[:capture].second)
+  bucket = current_user.buckets.to_enum.find{|b| b.name == params[:captures][0]}
+  slot = bucket.slots.to_enum.find{|s| s.file_name == params[:captures][1]}
+  only_can_read slot
+  
+  since = Time.httpdate(request.env['HTTP_IF_MODIFIED_SINCE']) rescue nil
+  if since && (slot.bit.upload_date) <= since
+    throw :halt, [304, "The request resource has not been modified."]
+  end
+  since = Time.httpdate(request.env['HTTP_IF_UNMODIFIED_SINCE']) rescue nil
+  if (since && (slot.updated_at > since)) or (request.env['HTTP_IF_MATCH'] && (slot.md5 != request.env['HTTP_IF_MATCH']))
+    throw :halt, [412, "At least one of the pre-conditions you specified did not hold."]
+  end
+  if request.env['HTTP_IF_NONE_MATCH'] && (slot.md5 == request.env['HTTP_IF_NONE_MATCH'])
+    throw :halt, [304, "The request resource has not been modified."]
+  end
+  # headers['Content-Type'] = slot.bit_type || "binary/octet-stream"
+  if request.env['HTTP_RANGE']
+    throw :halt, [501, "A header you provided implies functionality that is not implemented."]
+  end
+  # headers['ETag'] = slot.file.server_md5
+  # headers['Last-Modified'] = slot.updated_at.httpdate
+  # headers['Content-Length'] = slot.bit_size.to_s
+  # headers['Content-Disposition'] = "attachment; filename=\"#{slot.file_name}\""
+  tempf = Tempfile.new("#{slot.file_name}")
+  tempf.puts slot.bit.data
+  puts "* Slot inspection: " + slot.inspect + " *"
+  puts "\t*** " + slot.class.to_s + " ***"
+  puts "* File inspection: " + slot.bit.inspect + " *"
+  puts "\t*** " + slot.bit.class.to_s + " ***"
+  puts "* Grid inspection: " + slot.bit.grid_io.inspect + " *"
+  puts tempf.path
+  # puts slot.bit.grid_io.methods
+  send_file(tempf.path, {:disposition => 'attachment', :filename => slot.file_name, :type => slot.bit_type})
+  tempf.close!
+  status 200
 end
 # OR
 # get %r{/control/buckets/([^\/]+?)/(.+)} do |bucket_name, oid|
@@ -194,6 +148,41 @@ end
 # end
 ##
 
+get %r{/control/buckets/([^\/]+)} do
+  login_required
+  # Pull the bucket from the route.
+  # Find the root of the requested bucket and set as an instance variable.
+  # @bucket = current_user.buckets.find(:name => "#{params[:captures].first}")
+  puts "AHHHH!"
+  current_user.buckets.each do |b|
+    if b.name == params[:captures].first
+      @bucket = b
+    end
+  end
+  # I'm assuming only_can_read is checking read permissions on the bucket.
+  # only_can_read @bucket
+  # Pull all the files in the bucket. Probably will ignore torrenting.
+  @files = @bucket.slots
+  haml :control_files
+end
+
+post %r{/control/buckets/([^\/]+)} do
+  current_user.buckets.each do |b|
+    if b.name == params[:captures].first
+      @bucket = b
+    end
+  end
+  only_can_write @bucket
+  tempfile = params[:upfile][:tempfile]
+  params[:fname] == '' ? filename = params[:upfile][:filename] : filename = params[:fname]
+  slot = @bucket.slots.build(:bit => tempfile.open, :file_name => filename, :access => params[:facl])
+  unless slot.save!
+    throw :halt, [500, "Could not upload file to bucket."]
+  end
+  redirect '/control/buckets/'+@bucket.name
+end
+
+=begin
 ##
 # class CDeleteBucket < R '/control/delete/([^\/]+)'
 #     login_required

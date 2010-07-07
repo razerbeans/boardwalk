@@ -36,7 +36,8 @@ module Sinatra
 end
 
 class Boardwalk < Sinatra::Base
-    use Rack::FiberPool
+    # FiberPool seems to be throwing mutex errors left and right. Disabling.
+    # use Rack::FiberPool
   
     helpers Sinatra::Request::AWSHandler
     load 'lib/boardwalk/control_routes.rb'
