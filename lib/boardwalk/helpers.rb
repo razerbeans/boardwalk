@@ -16,12 +16,16 @@ helpers do
   
   def only_can_read(bucket)
     # throw :halt, [403, "Access Denied"] unless bucket.readable_by? current_user
-    throw :halt, [403, "Access Denied"] unless bucket.readable_by? current_user
+    throw :halt, [403, "Access Denied."] unless bucket.readable_by? current_user
   end
   
   def only_can_write(bucket)
     # throw :halt, [403, "Access Denied"] unless bucket.writable_by? current_user
-    throw :halt, [403, "Access Denied"] unless bucket.writable_by? current_user
+    throw :halt, [403, "Access Denied."] unless bucket.writable_by? current_user
+  end
+  
+  def only_owner_of(bucket)
+    throw :halt, [403, "Access Denied."] unless bucket.owned_by? current_user
   end
   
   def check_credentials(username, password)
@@ -52,25 +56,6 @@ helpers do
     @buckets = buckets
     @bucket = Bucket.new(:access => CANNED_ACLS['private'])
   end
+
   
-  # def check_access user, group_perm, user_perm
-  #       !!( if owned_by?(user) or (user and (access > 0 && group_perm > 0)) or (access & user_perm > 0)
-  #               true
-  #           elsif user
-  #               acl = users.find(user.id) rescue nil
-  #               acl and acl.access.to_i & user_perm
-  #           end )
-  #   end
-  
-  # def owned_by? user
-  #     user and owner_id == user.id
-  # end
-  # 
-  # def readable_by? user
-  #     check_access(user, READABLE_BY_AUTH, READABLE)
-  # end
-  # 
-  # def writable_by? user
-  #     check_access(user, WRITABLE_BY_AUTH, WRITABLE)
-  # end
 end

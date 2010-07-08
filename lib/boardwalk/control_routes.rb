@@ -34,6 +34,7 @@ end
 get '/control/buckets/?' do
   login_required
   load_buckets
+  @plain = '<script type="text/javascript" src="/js/buckets.js"></script>'
   puts @buckets.inspect
   # When _why uses :control, he uses it as a "universal" layout. :buckets 
   # specifies the content yielded in this "universal" layout.
@@ -49,6 +50,7 @@ post '/control/buckets' do
     end
   end
   load_buckets
+  @plain = '<script type="text/javascript" src="/js/buckets.js"></script>'
   @title="Buckets"
   haml :control_buckets
 end
@@ -115,7 +117,6 @@ post %r{/control/buckets/([^\/]+)} do
   redirect '/control/buckets/'+@bucket.name
 end
 
-=begin
 ##
 # class CDeleteBucket < R '/control/delete/([^\/]+)'
 #     login_required
@@ -132,18 +133,25 @@ end
 #     end
 # end
 ##
-post %r{/control/delete/([^\/]+)} do
+# post %r{/control/delete/([^\/]+)} do
+post '/control/delete' do
   login_required
-  bucket = Bucket.find(params[:capture].first)
-  only_owner_of(bucket)
-  # IF bucket_has_slots
-  #   ERROR "Bucket not empty!"
-  # ELSE
-  #   bucket.destroy!
-  # END
-  redirect '/control/buckets'
+  bucket = current_user.buckets.to_enum.find{|b| b.name == params[:bucket_name]}
+  only_owner_of bucket
+  if bucket.slots.empty?
+    if bucket.delete
+      current_user.buckets.delete_if{|b| b.name == bucket.name}
+      status 200
+    else
+      status 500
+    end
+  else
+    puts "Halting..."
+    throw :halt, [500, "Bucket cannot be deleted since it's not empty."]
+  end
 end
 
+=begin
 ##
 # class CDeleteFile < R '/control/delete/(.+?)/(.+)'
 #     login_required

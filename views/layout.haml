@@ -6,6 +6,8 @@
 				= @title
 		%script{:language => 'javascript', :src => '/js/jquery.js'}
 		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/control.css'}
+		:plain
+			#{@plain||=''}
 	%body
 		#page
 			-if session[:user] && current_user

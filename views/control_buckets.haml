@@ -2,32 +2,39 @@
 -if @buckets && !@buckets.nil?
 	%table
 		%thead
-			%th
-				Name
-			%th
-				Contains
-			%th
-				Updated on
-			%th
-				Permission
-			%th
-				Actions
+			%tr
+				%th
+					Name
+				%th
+					Contains
+				%th
+					Updated on
+				%th
+					Permission
+				%th
+					Actions
 		%tbody
 			-@buckets.each do |bucket|
-				%tr
+				%tr{:id => "#{bucket.name}"}
 					%th
 						%a{:href => '/control/buckets/' + bucket.name}
 							= bucket.name
 					%td
-						= bucket.total_children rescue 0
-						&nbsp;files
+						= bucket.slots.size rescue 0
+						- if bucket.slots.size == 1
+							&nbsp;file
+						- else
+							&nbsp;files
 					%td
-						= bucket.updated_at
+						= bucket.updated_at || bucket.created_at
 					%td
 						= bucket.access_readable
 					%td
 						/ Need to make an ajax delete function here.
-						%a{:href => '/control/delete/' + bucket.name, :title => "Delete bucket #{bucket.name}" }
+						%form.deletion
+							%input{:type => "hidden", :value => "#{bucket.name}", :name => "bucket_name", :class => "bucket_name"}
+							%input{:type => "hidden", :value => "bucket", :name => "deletion_type", :class => "deletion_type"}
+						%a.delete_bucket{:title => "Delete bucket #{bucket.name}", :style => "cursor:pointer;"}
 							Delete
 -else
 	%p
