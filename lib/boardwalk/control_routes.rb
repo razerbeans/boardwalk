@@ -145,19 +145,10 @@ get '/control/users' do
   # Find all the users that aren't marked as deleted.
   @users = User.all(:conditions => {'deleted' => false}) # <conditions>
   @title = "User List"
+  @plain = '<script type="text/javascript" src="/js/users.js"></script>'
   haml :control_users
 end
 
-#     def post
-#         only_superusers
-#         @usero = User.new @input.user.merge(:activated_at => Time.now)
-#         if @usero.valid?
-#             @usero.save
-#             redirect CUsers
-#         else
-#             render :control, "New User", :user
-#         end
-#     end
 post '/control/users' do
   login_required
   only_superusers
@@ -178,37 +169,21 @@ post '/control/users' do
     haml :control_user
   end
 end
-# end
-##
 
-=begin
-##
-# class CDeleteUser < R '/control/users/delete/(.+)'
-#     login_required
-#     def post(login)
-#         only_superusers
-#         @usero = User.find_by_login login
-#         if @usero.id == @user.id
-#             error "Suicide is not an option."
-#         else
-#             @usero.destroy
-#         end
-#         redirect CUsers
-#     end
-# end
-##
-post %{/control/users/delete/(.+)} do
+post %{/control/users/delete} do
   login_required
-  superuser_required
-  @usero = User.find_by_login(params[:capture].first)
-  if @usero.id == @user.id
+  only_superusers
+  puts params.inspect
+  @usero = User.all(:conditions => {'login' => params[:login]}).first
+  puts @usero.inspect
+  if @usero.login == current_user.login
     error "Suicide is not an option."
   else
-    @usero.destroy!
+    @usero.delete
   end
-  redirect '/control/users'
 end
 
+=begin
 ##
 # class CUser < R '/control/users/([^\/]+)'
 #     login_required

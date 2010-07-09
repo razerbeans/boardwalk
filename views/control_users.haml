@@ -15,7 +15,9 @@
 				%td
 					= user.activated_at
 				%td
-					%a{:href => '/control/users/delete', :title => "Delete user #{user.login}" }
+					%form.deletion
+						%input{:type => "hidden", :value => "#{user.login}", :name => "user_login", :class => "user_login"}
+					%a.delete_user{:title => "Delete user #{user.login}"}
 						Delete
 %h3
 	Create a User
