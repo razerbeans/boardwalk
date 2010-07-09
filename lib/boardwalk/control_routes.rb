@@ -36,8 +36,6 @@ get '/control/buckets/?' do
   load_buckets
   @plain = '<script type="text/javascript" src="/js/buckets.js"></script>'
   puts @buckets.inspect
-  # When _why uses :control, he uses it as a "universal" layout. :buckets 
-  # specifies the content yielded in this "universal" layout.
   @title="Buckets"
   haml :control_buckets
 end
@@ -85,18 +83,12 @@ end
 
 get %r{/control/buckets/([^\/]+)} do
   login_required
-  # Pull the bucket from the route.
-  # Find the root of the requested bucket and set as an instance variable.
-  # @bucket = current_user.buckets.find(:name => "#{params[:captures].first}")
   puts "AHHHH!"
   current_user.buckets.each do |b|
     if b.name == params[:captures].first
       @bucket = b
     end
   end
-  # I'm assuming only_can_read is checking read permissions on the bucket.
-  # only_can_read @bucket
-  # Pull all the files in the bucket. Probably will ignore torrenting.
   @files = @bucket.slots
   @plain = '<script type="text/javascript" src="/js/files.js"></script>'
   haml :control_files
@@ -146,47 +138,19 @@ post '/control/delete' do
   end
 end
 
-##
-# class CDeleteFile < R '/control/delete/(.+?)/(.+)'
-#     login_required
-#     def post(bucket_name, oid)
-#         bucket = Bucket.find_root bucket_name
-#         only_can_write bucket
-#         slot = bucket.find_slot(oid)
-#         slot.destroy
-#         redirect CFiles, bucket_name
-#     end
-# end
-##
-# post %r{/control/delete/(.+?)/(.+)} do
-#   login_required
-#   bucket = Bucket.find(params[:capture].first)
-#   only_can_write(bucket)
-#   slot = bucket.find_slot(params[:capture].second)
-#   slot.destroy!
-#   redirect "/control/buckets/#{params[:capture].first}"
-# end
-
-=begin
-##
-# class CUsers < R '/control/users'
-#     login_required
-#     def get
-#         only_superusers
-#         @usero = User.new
-#         @users = User.find :all, :conditions => ['deleted != 1'], :order => 'login'
-#         render :control, "User List", :users
-#     end
 get '/control/users' do
   login_required
-  superuser_required
+  only_superusers
   # Don't understand the need for this. I assume it's for a new user form in
   # the view.
   @usero = User.new
   # Find all the users that aren't marked as deleted.
-  @users = User.find :all # <conditions>
+  @users = User.all # <conditions>
+  @title = "User List"
   haml :control_users
 end
+
+=begin
 #     def post
 #         only_superusers
 #         @usero = User.new @input.user.merge(:activated_at => Time.now)

@@ -1,0 +1,52 @@
+%table
+	%thead
+		%th
+			Login
+		%th
+			Activated on
+		%th
+			Actions
+	%tbody
+		- @users.each do |user|
+			%tr
+				%th
+					%a{:href => "/control/users/#{user.login}"}
+						= user.login
+				%td
+					= user.activated_at
+				%td
+					%a{:href => '/control/users/delete', :title => "Delete user #{user.login}" }
+						Delete
+%h3
+	Create a User
+%form{:action => '/control/users', :method => 'post', :class => 'create'}
+	%div.required
+		%label{:for => 'login'}
+			Login
+		%input.large{:name => 'login', :type => 'text', :value => @usero.login}
+	%div.required.inline
+		%label{:for => 'superuser'}
+			Is a super-admin?&nbsp;
+		/%input{:name => 'superuser', :type => 'checkbox', @usero.superuser}
+		%input{:name => 'superuser', :type => 'checkbox'}
+	%div.required
+		%label{:for => 'password'}
+			Password
+		%input.fixed{:name => 'password', :type => 'password'}
+	%div.required
+		%label{:for => 'password_confirmation'}
+			Password (again)
+		%input.fixed{:name => 'password_confirmation', :type => 'password'}
+	%div.required
+		%label{:for => 'email'}
+			Email
+		%input{:name => 'email', :type => 'text', :value => @usero.email}
+	%div.required
+		%label{:for => 'key'}
+			Key (must be unique)
+		%input.fixed.long{:name => 'key', :type => 'text', :value => @usero.s3key || generate_key}
+	%div.required
+		%label{:for => 'secret'}
+			Secret
+		%input.fixed.long{:name => 'secret', :type => 'text', :value => @usero.s3secret || generate_secret}
+	%input{:type => 'submit', :value => "Create"}

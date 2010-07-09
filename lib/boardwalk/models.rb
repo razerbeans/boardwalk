@@ -18,7 +18,7 @@ class User
   key :s3secret,      String,   :limit => 64,       :required => true
   key :created_at,    Time
   key :activated_at,  Time
-  key :superuser,     Integer,  :default => 0
+  key :superuser,     Boolean,  :default => false
   key :deleted,       Boolean,  :default => false
   
   validates_uniqueness_of :login
@@ -141,7 +141,7 @@ user = User.create({
                     :s3secret => "OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV",
                     :created_at => Time.now,
                     :activated_at => Time.now,
-                    :superuser => 1
+                    :superuser => true
                   })
 user.password = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), user.password, user.s3secret)).strip
 user.buckets.build(:name => "admin_bucket", :access => 384, :created_at => Time.now)# << Bucket.new(:name => "_adminbucket", :access => 384)

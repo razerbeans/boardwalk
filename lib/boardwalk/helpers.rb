@@ -1,4 +1,14 @@
-helpers do  
+helpers do
+  def generate_secret
+      abc = %{ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz} 
+      (1..40).map { abc[rand(abc.size),1] }.join
+  end
+
+  def generate_key
+      abc = %{ABCDEF0123456789} 
+      (1..20).map { abc[rand(abc.size),1] }.join
+  end
+  
   def login_required
     if session[:user].nil?
       redirect '/control/login'
@@ -11,7 +21,11 @@ helpers do
   end
   
   def only_authorized
-    raise AccessDenied unless current_user
+    throw :halt, [403, "Access Denied."] unless current_user
+  end
+  
+  def only_superusers
+    throw :halt, [403, "Access Denied."] unless current_user.superuser
   end
   
   def only_can_read(bucket)
