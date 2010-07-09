@@ -141,8 +141,6 @@ end
 get '/control/users' do
   login_required
   only_superusers
-  # Don't understand the need for this. I assume it's for a new user form in
-  # the view.
   @usero = User.new
   # Find all the users that aren't marked as deleted.
   @users = User.all(:conditions => {'deleted' => false}) # <conditions>
@@ -150,7 +148,6 @@ get '/control/users' do
   haml :control_users
 end
 
-=begin
 #     def post
 #         only_superusers
 #         @usero = User.new @input.user.merge(:activated_at => Time.now)
@@ -163,12 +160,20 @@ end
 #     end
 post '/control/users' do
   login_required
-  superuser_required
-  @usero = User.new # The stuff up top is to put the activation time in the 
-                    # form (I think).
+  only_superusers
+  puts params.inspect
+  superuser = false
+  superuser = true if params[:superuser] == 'on'
+  throw :halt, [500, "Passwords did not match!"] if params[:password] != params[:password_confirmation]
+  @usero = User.create(:login => params[:login], :password => params[:password], :superuser => superuser, :email => params[:email], :s3key => params[:key], :s3secret => params[:secret], :created_at => Time.now)
+  @usero.password = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), @usero.password, @usero.s3secret)).strip
   if @usero.valid?
-    @usero.save
-    redirect '/control/users'
+    if @usero.save
+      redirect '/control/users'
+      status 200
+    else
+      throw :halt, [500, "Error processing user."]
+    end
   else
     haml :control_user
   end
@@ -176,6 +181,7 @@ end
 # end
 ##
 
+=begin
 ##
 # class CDeleteUser < R '/control/users/delete/(.+)'
 #     login_required
