@@ -44,7 +44,7 @@ end
 
 post '/control/buckets' do
   unless current_user.buckets.find(:name => params[:bucket_name])
-    bucket = current_user.buckets.build(:name => params[:bucket_name], :access => params[:bucket_access])
+    bucket = current_user.buckets.build(:name => params[:bucket_name], :access => params[:bucket_access], :created_at => Time.now)
     unless bucket.save!
       throw :halt, [500, "Could not create new bucket."]
     end
@@ -151,7 +151,6 @@ post '/control/delete' do
   end
 end
 
-=begin
 ##
 # class CDeleteFile < R '/control/delete/(.+?)/(.+)'
 #     login_required
@@ -173,6 +172,7 @@ post %r{/control/delete/(.+?)/(.+)} do
   redirect "/control/buckets/#{params[:capture].first}"
 end
 
+=begin
 ##
 # class CUsers < R '/control/users'
 #     login_required
