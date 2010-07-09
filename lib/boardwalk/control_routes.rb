@@ -98,6 +98,7 @@ get %r{/control/buckets/([^\/]+)} do
   # only_can_read @bucket
   # Pull all the files in the bucket. Probably will ignore torrenting.
   @files = @bucket.slots
+  @plain = '<script type="text/javascript" src="/js/files.js"></script>'
   haml :control_files
 end
 
@@ -117,37 +118,31 @@ post %r{/control/buckets/([^\/]+)} do
   redirect '/control/buckets/'+@bucket.name
 end
 
-##
-# class CDeleteBucket < R '/control/delete/([^\/]+)'
-#     login_required
-#     def post(bucket_name)
-#         bucket = Bucket.find_root(bucket_name)
-#         only_owner_of bucket
-# 
-#         if Slot.count(:conditions => ['parent_id = ?', bucket.id]) > 0
-#             error "Bucket #{bucket.name} cannot be deleted, since it is not empty."
-#         else
-#             bucket.destroy
-#         end
-#         redirect CBuckets
-#     end
-# end
-##
-# post %r{/control/delete/([^\/]+)} do
 post '/control/delete' do
   login_required
-  bucket = current_user.buckets.to_enum.find{|b| b.name == params[:bucket_name]}
-  only_owner_of bucket
-  if bucket.slots.empty?
-    if bucket.delete
-      current_user.buckets.delete_if{|b| b.name == bucket.name}
+  if params[:deletion_type] == 'bucket'
+    bucket = current_user.buckets.to_enum.find{|b| b.name == params[:bucket_name]}
+    only_owner_of bucket
+    if bucket.slots.empty?
+      if bucket.delete
+        current_user.buckets.delete_if{|b| b.name == bucket.name}
+        status 200
+      else
+        throw :halt, [500, "Could not delete bucket (error)."]
+      end
+    else
+      throw :halt, [500, "Bucket cannot be deleted since it's not empty."]
+    end
+  elsif params[:deletion_type] == 'file'
+    bucket = current_user.buckets.to_enum.find{|b| b.name == params[:bucket_name]}
+    only_can_write(bucket)
+    slot = bucket.slots.to_enum.find{|s| s.file_name == params[:file_name]}
+    if slot.delete
+      bucket.slots.delete_if{|s| s.file_name == slot.file_name}
       status 200
     else
-      status 500
+      throw :halt, [500, "Could not delete file (error)."]
     end
-  else
-    puts "Halting..."
-    throw :halt, [500, "Bucket cannot be deleted since it's not empty."]
   end
 end
 
@@ -163,14 +158,14 @@ end
 #     end
 # end
 ##
-post %r{/control/delete/(.+?)/(.+)} do
-  login_required
-  bucket = Bucket.find(params[:capture].first)
-  only_can_write(bucket)
-  slot = bucket.find_slot(params[:capture].second)
-  slot.destroy!
-  redirect "/control/buckets/#{params[:capture].first}"
-end
+# post %r{/control/delete/(.+?)/(.+)} do
+#   login_required
+#   bucket = Bucket.find(params[:capture].first)
+#   only_can_write(bucket)
+#   slot = bucket.find_slot(params[:capture].second)
+#   slot.destroy!
+#   redirect "/control/buckets/#{params[:capture].first}"
+# end
 
 =begin
 ##

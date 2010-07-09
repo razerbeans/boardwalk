@@ -21,9 +21,12 @@
 						%div.details{:id => "details-#{file.id}"}
 							%p
 								Last modified on #{file.bit.upload_date}
-							%p
-								%a{:href => '/control/delete/'+@bucket.name+'/'+file.file_name, :title => "Delete file #{file.file_name}"}
-									"Delete"
+								%form.deletion
+									%input{:type => "hidden", :value => "#{file.bucket.name}", :name => "bucket_name", :class => "bucket_name"}
+									%input{:type => "hidden", :value => "file", :name => "deletion_type", :class => "deletion_type"}
+									%input{:type => "hidden", :value => "#{file.file_name}", :name => "file_name", :class => "file_name"}
+								%a.delete_file{:title => "Delete file #{file.file_name}", :style => "cursor:pointer;"}
+									Delete
 					%td
 						= file.bit_size
 					%td
