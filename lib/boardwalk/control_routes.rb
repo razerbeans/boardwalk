@@ -145,7 +145,7 @@ get '/control/users' do
   # the view.
   @usero = User.new
   # Find all the users that aren't marked as deleted.
-  @users = User.all # <conditions>
+  @users = User.all(:conditions => {'deleted' => false}) # <conditions>
   @title = "User List"
   haml :control_users
 end
@@ -234,8 +234,9 @@ end
 # end
 ##
 
-# NOTE: These are Mongrel specific and I have no idea what they do. I'll just 
-# have to incorperate it all later.
+##
+# NOTE: My guess is that these routes look at the status of file uploads to the
+#       web server. No idea if these will be implemented.
 ##
 # class CProgressIndex < R '/control/progress'
 #     def get
