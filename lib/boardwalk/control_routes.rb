@@ -183,7 +183,6 @@ post %{/control/users/delete} do
   end
 end
 
-=begin
 ##
 # class CUser < R '/control/users/([^\/]+)'
 #     login_required
@@ -194,27 +193,35 @@ end
 #     end
 get %r{/control/users/([^\/]+)} do
   login_required
-  superuser_required
-  @usero = User.find_by_login(params[:capture].first)
+  only_superusers
+  @usero = User.all(:conditions => {'login' => params[:captures].first}).first
+  @title = @usero.login
   haml :control_profile
 end
-#     def post(login)
-#         only_superusers
-#         @usero = User.find_by_login login
-#         @usero.update_attributes(@input.user)
-#         render :control, "#{@usero.login}", :profile
-#     end
+
+# Ugh. This is so brute-force and nasty. Need to clean this up later -Randall
 post %r{/control/users/([^\/]+)} do
   login_required
-  superuser_required
-  @usero = User.find_by_login(params[:capture].first)
-  # params[:user] is from the user form.
-  @user.update_attributes(params[:user])
+  only_superusers
+  throw :halt, [500, "Passwords did not match!"] if params[:password] != params[:password_confirmation]
+  @usero =  User.all(:conditions => {'login' => params[:captures].first}).first
+  posted_info = {}
+  params.delete 'password_confirmation'
+  params.each { |k,v| posted_info["#{k}"] = "#{v}" if v != '' && k != 'captures' }
+  if params[:superuser] == 'on'
+    posted_info.merge!({'superuser' => true})
+  else
+    posted_info.merge!({'superuser' => false})
+  end
+  posted_info[:password] = hmac_sha1(params[:password], @usero.s3secret) if posted_info.has_key? 'password'
+  @usero.update_attributes(posted_info) rescue throw :halt, [500, "There was an error updating user record."]
+  @title = @usero.login
   haml :control_profile
 end
 # end
 ##
 
+=begin
 ##
 # NOTE: My guess is that these routes look at the status of file uploads to the
 #       web server. No idea if these will be implemented.

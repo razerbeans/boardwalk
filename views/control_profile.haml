@@ -1,0 +1,29 @@
+%form.create{:method => 'post'}
+	-if current_user.superuser
+		%div.required.inline
+			%label{:for => 'superuser'}
+				Is a super-admin?&nbsp;
+		%input{:type => "checkbox", :name => 'superuser', :checked => @usero.superuser}
+	%div.required
+		%label{:for => 'password'}
+			Password
+	%input.fixed{:name => 'password', :type => 'password'}
+	%div.required
+		%label{:for => 'password_confirmation'}
+			Password again
+	%input.fixed{:name => 'password_confirmation', :type => 'password'}
+	%div.required
+		%label{:for => 'email'}
+			Email
+	%input{:name => 'email', :type => 'text', :value => @usero.email}
+	%div.required
+		%label{:for => 'key'}
+			Key
+	%h4
+		=@usero.s3key
+	%div.required
+		%label{:for => 'secret'}
+			Secret
+	%h4
+		=@usero.s3secret
+	%input{:type => 'submit', :value => "Save"}
