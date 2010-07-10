@@ -192,6 +192,9 @@ get %r{/control/users/([^\/]+)} do
 end
 
 # Ugh. This is so brute-force and nasty. Need to clean this up later -Randall
+# Also, there is a possibility that a user could send s3key and s3secret post
+#   data to alter their information even though it shouldn't be allowed. Need
+#   to adjust for this later. -Randall
 post %r{/control/users/([^\/]+)} do
   login_required
   only_superusers
@@ -210,34 +213,31 @@ post %r{/control/users/([^\/]+)} do
   @title = @usero.login
   haml :control_profile
 end
-# end
-##
+
+get '/control/profile' do
+  @usero = current_user
+  throw :halt, [500, "Passwords did not match!"] if params[:password] != params[:password_confirmation]
+  @title = "Your Profile"
+  haml :control_profile
+end
+
+post '/control/profile' do
+  posted_info = {}
+  params.delete 'password_confirmation'
+  params.each { |k,v| posted_info["#{k}"] = "#{v}" if v != '' && k != 'captures' }
+  if params[:superuser] == 'on'
+    posted_info.merge!({'superuser' => true})
+  else
+    posted_info.merge!({'superuser' => false})
+  end
+  posted_info[:password] = hmac_sha1(params[:password], @usero.s3secret) if posted_info.has_key? 'password'
+  current_user.update_attributes(posted_info) rescue throw :halt, [500, "There was an error updating your records."]
+  @usero = current_user
+  @title = "Your Profile"
+  haml :control_profile
+end
 
 =begin
-##
-# class CProfile < R '/control/profile'
-#     login_required
-#     def get
-#         @usero = @user
-#         render :control, "Your Profile", :profile
-#     end
-get '/control/profile' do
-  @usero = @user
-  haml :control_profile
-end
-#     def post
-#         @user.update_attributes(@input.user)
-#         @usero = @user
-#         render :control, "Your Profile", :profile
-#     end
-post '/control/profile' do
-  @user.update_attributes(params[:user])
-  @usero = @user
-  haml :control_profile
-end
-# end
-##
-
 ##
 # class CStatic < R '/control/s/(.+)'
 #     def get(path)
