@@ -183,14 +183,6 @@ post %{/control/users/delete} do
   end
 end
 
-##
-# class CUser < R '/control/users/([^\/]+)'
-#     login_required
-#     def get(login)
-#         only_superusers
-#         @usero = User.find_by_login login
-#         render :control, "#{@usero.login}", :profile
-#     end
 get %r{/control/users/([^\/]+)} do
   login_required
   only_superusers
@@ -222,31 +214,6 @@ end
 ##
 
 =begin
-##
-# NOTE: My guess is that these routes look at the status of file uploads to the
-#       web server. No idea if these will be implemented.
-##
-# class CProgressIndex < R '/control/progress'
-#     def get
-#         Mongrel::Uploads.instance.instance_variable_get("@counters").inspect
-#     end
-# end
-##
-get '/control/progress' do
-  # Mongrel::Uploads.instance.instance_variable_get("@counters").inspect
-end
-
-##
-# class CProgress < R '/control/progress/(.+)'
-#     def get(upid)
-#         Mongrel::Uploads.instance.check(upid).inspect
-#     end
-# end
-##
-get %r{/control/progress/(.+)} do
-  # Mongrel::Uploads.instance.check(params[:capture].first).inspect
-end
-
 ##
 # class CProfile < R '/control/profile'
 #     login_required
@@ -282,5 +249,30 @@ end
 get %r{/control/s/(.+)} do
   # Not entirely sure what all is needed here. Most likely other ways to do it
   # with rack.
+end
+
+##
+# NOTE: My guess is that these routes look at the status of file uploads to the
+#       web server. No idea if these will be implemented.
+##
+# class CProgressIndex < R '/control/progress'
+#     def get
+#         Mongrel::Uploads.instance.instance_variable_get("@counters").inspect
+#     end
+# end
+##
+get '/control/progress' do
+  # Mongrel::Uploads.instance.instance_variable_get("@counters").inspect
+end
+
+##
+# class CProgress < R '/control/progress/(.+)'
+#     def get(upid)
+#         Mongrel::Uploads.instance.check(upid).inspect
+#     end
+# end
+##
+get %r{/control/progress/(.+)} do
+  # Mongrel::Uploads.instance.check(params[:capture].first).inspect
 end
 =end
