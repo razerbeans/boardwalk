@@ -16,7 +16,7 @@
 						%li
 							%a{:href => '/control/buckets'}
 								Buckets
-						-if @user and @user.superuser?
+						-if current_user and current_user.superuser
 							%li
 								%a{:href => '/control/users'}
 									Users

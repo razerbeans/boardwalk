@@ -3,10 +3,12 @@ module Sinatra
     module AWSHandler
         def aws_authenticate
           # puts "Should do env loop."
+          puts @env.inspect
+          @amz = {}
           @env.each do |k, v|
             # puts "Running env loop. (#{k}, #{v})"
-            # k = k.downcase.gsub('_', '-')
-            k = k.gsub('_', '-')
+            k = k.downcase.gsub('_', '-')
+            # k = k.gsub('_', '-')
             @amz[$1] = v.strip if k =~ /^http-x-amz-([-\w]+)$/
           end
           date = (@env['HTTP_X_AMZ_DATE'] || @env['HTTP_DATE'])
@@ -14,6 +16,9 @@ module Sinatra
           uri = @env['PATH_INFO']
           uri += "?" + @env['QUERY_STRING'] if RESOURCE_TYPES.include?(@env['QUERY_STRING'])
           canonical = [@env['REQUEST_METHOD'], @env['HTTP_CONTENT_MD5'], @env['HTTP_CONTENT_TYPE'], date, uri]
+          @amz.sort.each do |k, v|
+              canonical[-1,0] = "x-amz-#{k}:#{v}"
+          end
           # PSEDUO: If the user sent secret string is equal to the user's 
           #         [encrypted] information from the server, user is clear.
           #         otherwise, user is not allowed.
@@ -21,9 +26,14 @@ module Sinatra
           # @user = Boardwalk::Models::User.find_by_key key
           # @user = User.new(key)
           # if @user and secret != hmac_sha1(options.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
-          @user = User.first(:s3key => key)
+          @user = User.all(:conditions => {:s3key => key}).first
+          puts "*** USER SET AS: "+@user.inspect+" ***"
+          # if @user.nil?
+          #   throw :halt, [500, "User not set?"]
+          # end
+          puts "Secret: "+secret+"\nDigest: "+hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
           if @user and secret != hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
-            raise BadAuthentication
+             throw :halt, [401, "The authorization information you provided is invalid. Please try again."]
           end
         end
       private

@@ -21,7 +21,7 @@ helpers do
   end
   
   def only_authorized
-    throw :halt, [403, "Access Denied."] unless current_user
+    throw :halt, [403, "Access Denied."] unless @user
   end
   
   def only_superusers
@@ -42,6 +42,10 @@ helpers do
     throw :halt, [403, "Access Denied."] unless bucket.owned_by? current_user
   end
   
+  def aws_only_owner_of(bucket)
+    throw :halt, [403, "Access Denied."] unless bucket.owned_by? @user
+  end
+  
   def check_credentials(username, password)
     user = User.first(:login => username)
     puts user.inspect
@@ -55,7 +59,9 @@ helpers do
   end
   
   def current_user
-    return User.first(:login => session[:user].login)
+    @user = User.first(:login => session[:user].login)
+    # return User.first(:login => session[:user].login)
+    return @user
   end
   
   def hmac_sha1(key, s)
@@ -70,6 +76,4 @@ helpers do
     @buckets = buckets
     @bucket = Bucket.new(:access => CANNED_ACLS['private'])
   end
-
-  
 end

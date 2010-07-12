@@ -1,67 +1,24 @@
 current = File.join(File.dirname(__FILE__))
-
-class FakeBucket
-  def initialize
-    @name = rand(999) + 1
-    @created_at = Time.local(2000,1,1,20,15,1)
-  end
-  
-  def name
-    @name
-  end
-  
-  def created_at
-    @created_at
-  end
-end
-
 ##
 # This file will contain routes for the S3 REST API.
 ##
 
 ##
 # class RService < S3 '/'
-#     def get
-#         only_authorized
-#         buckets = Bucket.find :all, :conditions => ['parent_id IS NULL AND owner_id = ?', @user.id], :order => "name"
-# 
-#         xml do |x|
-#             x.ListAllMyBucketsResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
-#                 x.Owner do
-#                     x.ID @user.key
-#                     x.DisplayName @user.login
-#                 end
-#                 x.Buckets do
-#                     buckets.each do |b|
-#                         x.Bucket do
-#                             x.Name b.name
-#                             x.CreationDate b.created_at.getgm.iso8601
-#                         end
-#                     end
-#                 end
-#             end
-#         end
-#     end
-# end
 ##
 get '/' do
+  puts "Root route."
+  # @user is set here.
   aws_authenticate
   content_type "application/xml"
-  # I'm assuming this checks the keys that the user is using for the API call.
-  # Question: How do we set the user istance variable for this? Passthrough 
-  #           the only_authorized method?
+  # Make sure said user is able to access this.
   only_authorized
   # Basically find all the buckets associated with the user
-  # buckets = []
-  # seed = rand(9) + 1
-  # seed.times do 
-  #   buckets << FakeBucket.new # Bucket.find(:all)
-  # end
   buckets = @user.buckets
   # Render XML that is used by the S3 API making call.
   # NOTE: This could be done in an external .builder file, however I'm not sure
   #       how well instance variables can be passed this way. But external 
-  #       files may allow the routes themselves to load faster since there 
+  #       files might allow the routes themselves to load faster since there 
   #       will not be as much pollution in the file.
   builder do |x|
     x.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8"
@@ -84,26 +41,24 @@ end
 
 ##
 # class RBucket < S3 '/([^\/]+)/?'
-#     def put(bucket_name)
-#         only_authorized
-#         bucket = Bucket.find_root(bucket_name)
-#         only_owner_of bucket
-#         bucket.grant(requested_acl)
-#         raise BucketAlreadyExists
-#     rescue NoSuchBucket
-#         Bucket.create(:name => bucket_name, :owner_id => @user.id).grant(requested_acl)
-#         r(200, '', 'Location' => @env.PATH_INFO, 'Content-Length' => 0)
-#     end
 put %r{/([^\/]+)/?} do
+  puts "Secondary route."
   aws_authenticate
   only_authorized
-  bucket_name = params[:capture]#.first
-  bucket = Bucket.find_root(bucket_name)
-  if !bucket
-    @user.buckets.create(:name => params[:capture], :owner_id => @user.id)
+  bucket_name = params[:captures].first
+  bucket = Bucket.first(:name => bucket_name)
+  puts bucket.inspect
+  amz = CANNED_ACLS[@amz]
+  if bucket.nil?
+    @user.buckets.create(:name => params[:captures].first, :access => amz)
+    request.env['Location'] = request.env['PATH_INFO']
+    request.env['Content-Length'] = 0
+    status 200
+  else
+    throw :halt, [409, "The named bucket you tried to create already exists."]
   end
-  # only_owner_of(bucket)
 end
+=begin
 #     def delete(bucket_name)
 #         bucket = Bucket.find_root(bucket_name)
 #         only_owner_of bucket
@@ -114,7 +69,19 @@ end
 #         bucket.destroy
 #         r(204, '')
 #     end
-=begin
+delete %r{/([^\/]+)/?} do
+  bucket = Bucket.first(:name => params[:captures].first)
+  puts bucket.inspect
+  aws_only_owner_of bucket
+  if bucket.slots.size > 0
+    throw :halt, [409, "The bucket you tried to delete is not empty."]
+  end
+  if bucket.delete
+    status 204
+  else
+    status 500
+  end
+end
   def get(bucket_name)
       bucket = Bucket.find_root(bucket_name)
       only_can_read bucket

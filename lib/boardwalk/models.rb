@@ -73,8 +73,10 @@ class Bucket
   def self.readable_by? bucket
       check_access(bucket.user, READABLE_BY_AUTH, READABLE)
   end
-  def owned_by? current_user
-      current_user and user.login == current_user.login
+  def owned_by? passed_user
+    puts "Passed user: "+passed_user.inspect
+    puts "User comparison "+user.inspect
+      passed_user and user.login == passed_user.login
   end
   def writable_by? current_user
       check_access(current_user, WRITABLE_BY_AUTH, WRITABLE)
