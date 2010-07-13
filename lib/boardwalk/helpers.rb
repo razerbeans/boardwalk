@@ -29,12 +29,10 @@ helpers do
   end
   
   def only_can_read(bucket)
-    # throw :halt, [403, "Access Denied"] unless bucket.readable_by? current_user
     throw :halt, [403, "Access Denied."] unless bucket.readable_by? current_user
   end
   
   def only_can_write(bucket)
-    # throw :halt, [403, "Access Denied"] unless bucket.writable_by? current_user
     throw :halt, [403, "Access Denied."] unless bucket.writable_by? current_user
   end
   
@@ -48,7 +46,7 @@ helpers do
   
   def check_credentials(username, password)
     user = User.first(:login => username)
-    puts user.inspect
+    puts "USER PASS "+user.password
     puts "COMPARISON #{hmac_sha1(password, user.s3secret)}"
     if user.password == hmac_sha1(password, user.s3secret)
       session[:user] = user

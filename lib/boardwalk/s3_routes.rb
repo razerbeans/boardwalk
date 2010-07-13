@@ -29,10 +29,12 @@ get '/' do
       end
       x.Buckets do
           buckets.each do |b|
+            unless b.destroyed?
               x.Bucket do
                   x.Name b.name
                   x.CreationDate b.created_at#.getgm.iso8601
               end
+            end
           end
       end
     end
@@ -58,30 +60,26 @@ put %r{/([^\/]+)/?} do
     throw :halt, [409, "The named bucket you tried to create already exists."]
   end
 end
-=begin
-#     def delete(bucket_name)
-#         bucket = Bucket.find_root(bucket_name)
-#         only_owner_of bucket
-# 
-#         if Slot.count(:conditions => ['parent_id = ?', bucket.id]) > 0
-#             raise BucketNotEmpty
-#         end
-#         bucket.destroy
-#         r(204, '')
-#     end
+
 delete %r{/([^\/]+)/?} do
-  bucket = Bucket.first(:name => params[:captures].first)
-  puts bucket.inspect
+  aws_authenticate
+  bucket = Bucket.all(:conditions => {:name => params[:captures].first}).first
+  puts "Bucket inspect: "+bucket.inspect
+  puts "Bucket class: "+bucket.class.to_s
   aws_only_owner_of bucket
   if bucket.slots.size > 0
     throw :halt, [409, "The bucket you tried to delete is not empty."]
   end
-  if bucket.delete
+  if bucket.nil?
+    throw :halt, [404, "The specified bucket does not exist."]
+  end
+  if Bucket.destroy(bucket.id)
     status 204
   else
     status 500
   end
 end
+=begin
   def get(bucket_name)
       bucket = Bucket.find_root(bucket_name)
       only_can_read bucket
