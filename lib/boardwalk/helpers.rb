@@ -21,27 +21,27 @@ helpers do
   end
   
   def only_authorized
-    throw :halt, [403, "Access Denied."] unless @user
+    raise AccessDenied unless @user
   end
   
   def only_superusers
-    throw :halt, [403, "Access Denied."] unless current_user.superuser
+    raise AccessDenied unless current_user.superuser
   end
   
   def only_can_read(bucket)
-    throw :halt, [403, "Access Denied."] unless bucket.readable_by? current_user
+    raise AccessDenied unless bucket.readable_by? current_user
   end
   
   def only_can_write(bucket)
-    throw :halt, [403, "Access Denied."] unless bucket.writable_by? current_user
+    raise AccessDenied unless bucket.writable_by? current_user
   end
   
   def only_owner_of(bucket)
-    throw :halt, [403, "Access Denied."] unless bucket.owned_by? current_user
+    raise AccessDenied unless bucket.owned_by? current_user
   end
   
   def aws_only_owner_of(bucket)
-    throw :halt, [403, "Access Denied."] unless bucket.owned_by? @user
+    raise AccessDenied unless bucket.owned_by? @user
   end
   
   def check_credentials(username, password)

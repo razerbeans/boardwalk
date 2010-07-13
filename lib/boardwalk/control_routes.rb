@@ -62,17 +62,17 @@ get %r{/control/buckets/([^\/]+?)/(.+)} do
   
   since = Time.httpdate(request.env['HTTP_IF_MODIFIED_SINCE']) rescue nil
   if since && (slot.bit.upload_date) <= since
-    throw :halt, [304, "The request resource has not been modified."]
+    raise NotModified
   end
   since = Time.httpdate(request.env['HTTP_IF_UNMODIFIED_SINCE']) rescue nil
   if (since && (slot.updated_at > since)) or (request.env['HTTP_IF_MATCH'] && (slot.md5 != request.env['HTTP_IF_MATCH']))
-    throw :halt, [412, "At least one of the pre-conditions you specified did not hold."]
+    raise PreconditionFailed
   end
   if request.env['HTTP_IF_NONE_MATCH'] && (slot.md5 == request.env['HTTP_IF_NONE_MATCH'])
-    throw :halt, [304, "The request resource has not been modified."]
+    raise NotModified
   end
   if request.env['HTTP_RANGE']
-    throw :halt, [501, "A header you provided implies functionality that is not implemented."]
+    raise NotImplemented
   end
   tempf = Tempfile.new("#{slot.file_name}")
   tempf.puts slot.bit.data

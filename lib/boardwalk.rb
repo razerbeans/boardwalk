@@ -33,7 +33,7 @@ module Sinatra
           # end
           puts "Secret: "+secret+"\nDigest: "+hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
           if @user and secret != hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
-             throw :halt, [401, "The authorization information you provided is invalid. Please try again."]
+             raise BadAuthentication
           end
         end
       private

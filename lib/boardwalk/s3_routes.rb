@@ -10,9 +10,7 @@ get '/' do
   # @user is set here.
   aws_authenticate
   content_type "application/xml"
-  # Make sure said user is able to access this.
   only_authorized
-  # Basically find all the buckets associated with the user
   buckets = @user.buckets
   # Render XML that is used by the S3 API making call.
   # NOTE: This could be done in an external .builder file, however I'm not sure
