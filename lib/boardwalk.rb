@@ -47,9 +47,10 @@ end
 
 class Boardwalk < Sinatra::Base
     use Rack::FiberPool
-  
     helpers Sinatra::Request::AWSHandler
+    load 'lib/boardwalk/mimetypes.rb'
     load 'lib/boardwalk/control_routes.rb'
     load 'lib/boardwalk/helpers.rb'
+    load 'lib/boardwalk/errors.rb'
     load 'lib/boardwalk/s3_routes.rb'
 end

@@ -7,7 +7,6 @@ current = File.join(File.dirname(__FILE__))
 # class RService < S3 '/'
 ##
 get '/' do
-  puts "Root route."
   # @user is set here.
   aws_authenticate
   content_type "application/xml"
@@ -44,7 +43,6 @@ end
 ##
 # class RBucket < S3 '/([^\/]+)/?'
 put %r{/([^\/]+)/?} do
-  puts "Secondary route."
   aws_authenticate
   only_authorized
   bucket_name = params[:captures].first
@@ -57,15 +55,13 @@ put %r{/([^\/]+)/?} do
     request.env['Content-Length'] = 0
     status 200
   else
-    throw :halt, [409, "The named bucket you tried to create already exists."]
+    raise BucketAlreadyExists
   end
 end
 
 delete %r{/([^\/]+)/?} do
   aws_authenticate
   bucket = Bucket.all(:conditions => {:name => params[:captures].first}).first
-  puts "Bucket inspect: "+bucket.inspect
-  puts "Bucket class: "+bucket.class.to_s
   aws_only_owner_of bucket
   if bucket.slots.size > 0
     throw :halt, [409, "The bucket you tried to delete is not empty."]
@@ -158,7 +154,80 @@ end
   end
 =end
 get %r{/([^\/]+)/?} do
-  
+  # bucket = Bucket.all(:conditions => {:name => params[:captures].first})
+  # only_can_read bucket
+  # 
+  # if @input.has_key? 'torrent'
+  #     return torrent(bucket)
+  # end
+  # opts = {:conditions => ['parent_id = ?', bucket.id], :order => "name"}
+  # limit = nil
+  # if @input.prefix
+  #     opts[:conditions].first << ' AND name LIKE ?'
+  #     opts[:conditions] << "#{@input.prefix}%"
+  # end
+  # if @input.marker
+  #     opts[:offset] = @input.marker.to_i
+  # end
+  # if @input['max-keys']
+  #     opts[:limit] = @input['max-keys'].to_i
+  # end
+  # slot_count = Slot.count :conditions => opts[:conditions]
+  # contents = Slot.find :all, opts
+  # 
+  # if @input.delimiter
+  #   @input.prefix = '' if @input.prefix.nil?
+  # 
+  #   # Build a hash of { :prefix => content_key }. The prefix will not include the supplied @input.prefix.
+  #   prefixes = contents.inject({}) do |hash, c|
+  #     prefix = get_prefix(c).to_sym
+  #     hash[prefix] = [] unless hash[prefix]
+  #     hash[prefix] << c.name
+  #     hash
+  #   end
+  # 
+  #   # The common prefixes are those with more than one element
+  #   common_prefixes = prefixes.inject([]) do |array, prefix|
+  #     array << prefix[0].to_s if prefix[1].size > 1
+  #     array
+  #   end
+  # 
+  #   # The contents are everything that doesn't have a common prefix
+  #   contents = contents.reject do |c|
+  #     common_prefixes.include? get_prefix(c)
+  #   end
+  # end
+  # 
+  # xml do |x|
+  #     x.ListBucketResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
+  #         x.Name bucket.name
+  #         x.Prefix @input.prefix if @input.prefix
+  #         x.Marker @input.marker if @input.marker
+  #         x.Delimiter @input.delimiter if @input.delimiter
+  #         x.MaxKeys @input['max-keys'] if @input['max-keys']
+  #         x.IsTruncated slot_count > contents.length + opts[:offset].to_i
+  #         contents.each do |c|
+  #             x.Contents do
+  #                 x.Key c.name
+  #                 x.LastModified c.updated_at.getgm.iso8601
+  #                 x.ETag c.etag
+  #                 x.Size c.obj.size
+  #                 x.StorageClass "STANDARD"
+  #                 x.Owner do
+  #                     x.ID c.owner.key
+  #                     x.DisplayName c.owner.login
+  #                 end
+  #             end
+  #         end
+  #         if common_prefixes
+  #           common_prefixes.each do |p|
+  #             x.CommonPrefixes do
+  #               x.Prefix p
+  #             end
+  #           end
+  #         end
+  #     end
+  # end
 end
 # 
 #     private
