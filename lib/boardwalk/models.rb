@@ -70,8 +70,11 @@ class Bucket
           end.join
       end
   end
-  def self.readable_by? bucket
-      check_access(bucket.user, READABLE_BY_AUTH, READABLE)
+  # def self.readable_by? bucket
+  #     check_access(bucket.user, READABLE_BY_AUTH, READABLE)
+  # end
+  def readable_by? user
+      check_access(user, READABLE_BY_AUTH, READABLE)
   end
   def owned_by? passed_user
     puts "Passed user: "+passed_user.inspect
@@ -101,6 +104,8 @@ class Slot
   
   key :bucket_id,   ObjectId
   key :access,      Integer
+  key :created_at,  Time
+  key :updated_at,  Time
   
   belongs_to :bucket
   

@@ -45,7 +45,6 @@ put %r{/([^\/]+)/?} do
   only_authorized
   bucket_name = params[:captures].first
   bucket = Bucket.first(:name => bucket_name)
-  puts bucket.inspect
   amz = CANNED_ACLS[@amz]
   if bucket.nil?
     @user.buckets.create(:name => params[:captures].first, :access => amz)
@@ -73,164 +72,86 @@ delete %r{/([^\/]+)/?} do
     status 500
   end
 end
-=begin
-  def get(bucket_name)
-      bucket = Bucket.find_root(bucket_name)
-      only_can_read bucket
 
-      if @input.has_key? 'torrent'
-          return torrent(bucket)
-      end
-      opts = {:conditions => ['parent_id = ?', bucket.id], :order => "name"}
-      limit = nil
-      if @input.prefix
-          opts[:conditions].first << ' AND name LIKE ?'
-          opts[:conditions] << "#{@input.prefix}%"
-      end
-      if @input.marker
-          opts[:offset] = @input.marker.to_i
-      end
-      if @input['max-keys']
-          opts[:limit] = @input['max-keys'].to_i
-      end
-      slot_count = Slot.count :conditions => opts[:conditions]
-      contents = Slot.find :all, opts
-    
-      if @input.delimiter
-        @input.prefix = '' if @input.prefix.nil?
-      
-        # Build a hash of { :prefix => content_key }. The prefix will not include the supplied @input.prefix.
-        prefixes = contents.inject({}) do |hash, c|
-          prefix = get_prefix(c).to_sym
-          hash[prefix] = [] unless hash[prefix]
-          hash[prefix] << c.name
-          hash
-        end
-    
-        # The common prefixes are those with more than one element
-        common_prefixes = prefixes.inject([]) do |array, prefix|
-          array << prefix[0].to_s if prefix[1].size > 1
-          array
-        end
-      
-        # The contents are everything that doesn't have a common prefix
-        contents = contents.reject do |c|
-          common_prefixes.include? get_prefix(c)
-        end
-      end
+get %r{/([^\/]+)/?} do |e|
+  aws_authenticate
+  @input = request.params
+  puts "*** INPUT DUMP: "+@input.inspect+" ***"
+  bucket = Bucket.all(:conditions => {:name => params[:captures].first}).first
+  aws_only_can_read bucket
 
-      xml do |x|
-          x.ListBucketResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
-              x.Name bucket.name
-              x.Prefix @input.prefix if @input.prefix
-              x.Marker @input.marker if @input.marker
-              x.Delimiter @input.delimiter if @input.delimiter
-              x.MaxKeys @input['max-keys'] if @input['max-keys']
-              x.IsTruncated slot_count > contents.length + opts[:offset].to_i
-              contents.each do |c|
-                  x.Contents do
-                      x.Key c.name
-                      x.LastModified c.updated_at.getgm.iso8601
-                      x.ETag c.etag
-                      x.Size c.obj.size
-                      x.StorageClass "STANDARD"
-                      x.Owner do
-                          x.ID c.owner.key
-                          x.DisplayName c.owner.login
-                      end
+  if @input.has_key? 'torrent'
+      raise NotImplemented
+  end
+  opts = {:conditions => {}, :order => "name"}
+  limit = nil
+  if @input['prefix']
+    puts "Prefix detected."
+    opts[:conditions] = opts[:conditions].merge({:file_name => /#{@input['prefix']}.*/i})
+  end
+  if @input['marker']
+    puts "Marker detected."
+    opts[:offset] = @input['marker'].to_i
+  end
+  if @input['max-keys']
+    puts "Max-keys detected."
+    opts[:limit] = @input['max-keys'].to_i
+  end
+  slot_count = Slot.all(:conditions => opts[:conditions]).size
+  contents = Slot.all(opts)
+  puts "OPTS: "+opts.inspect
+  
+  if @input['delimiter']
+    @input['prefix'] = '' if @input['prefix'].nil?
+  
+    # Build a hash of { :prefix => content_key }. The prefix will not include the supplied @input.prefix.
+    prefixes = contents.inject({}) do |hash, c|
+      prefix = get_prefix(c).to_sym
+      hash[prefix] = [] unless hash[prefix]
+      hash[prefix] << c.name
+      hash
+    end
+  
+    # The common prefixes are those with more than one element
+    common_prefixes = prefixes.inject([]) do |array, prefix|
+      array << prefix[0].to_s if prefix[1].size > 1
+      array
+    end
+  
+    # The contents are everything that doesn't have a common prefix
+    contents = contents.reject do |c|
+      common_prefixes.include? get_prefix(c)
+    end
+  end
+  
+  builder do |x|
+      x.ListBucketResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
+          x.Name bucket.name
+          x.Prefix @input['prefix'] if @input['prefix']
+          x.Marker @input['marker'] if @input['marker']
+          x.Delimiter @input['delimiter'] if @input['delimiter']
+          x.MaxKeys @input['max-keys'] if @input['max-keys']
+          x.IsTruncated slot_count > contents.length + opts['offset'].to_i
+          contents.each do |c|
+              x.Contents do
+                  x.Key c.file_name
+                  x.LastModified c.bit.upload_date
+                  x.ETag c.bit.grid_io.server_md5
+                  x.Size c.bit.grid_io.file_length.to_i
+                  x.StorageClass "STANDARD"
+                  x.Owner do
+                      x.ID c.bucket.user.s3key
+                      x.DisplayName c.bucket.user.login
                   end
               end
-              if common_prefixes
-                common_prefixes.each do |p|
-                  x.CommonPrefixes do
-                    x.Prefix p
-                  end
-                end
+          end
+          if common_prefixes
+            common_prefixes.each do |p|
+              x.CommonPrefixes do
+                x.Prefix p
               end
+            end
           end
       end
   end
-=end
-get %r{/([^\/]+)/?} do
-  # bucket = Bucket.all(:conditions => {:name => params[:captures].first})
-  # only_can_read bucket
-  # 
-  # if @input.has_key? 'torrent'
-  #     return torrent(bucket)
-  # end
-  # opts = {:conditions => ['parent_id = ?', bucket.id], :order => "name"}
-  # limit = nil
-  # if @input.prefix
-  #     opts[:conditions].first << ' AND name LIKE ?'
-  #     opts[:conditions] << "#{@input.prefix}%"
-  # end
-  # if @input.marker
-  #     opts[:offset] = @input.marker.to_i
-  # end
-  # if @input['max-keys']
-  #     opts[:limit] = @input['max-keys'].to_i
-  # end
-  # slot_count = Slot.count :conditions => opts[:conditions]
-  # contents = Slot.find :all, opts
-  # 
-  # if @input.delimiter
-  #   @input.prefix = '' if @input.prefix.nil?
-  # 
-  #   # Build a hash of { :prefix => content_key }. The prefix will not include the supplied @input.prefix.
-  #   prefixes = contents.inject({}) do |hash, c|
-  #     prefix = get_prefix(c).to_sym
-  #     hash[prefix] = [] unless hash[prefix]
-  #     hash[prefix] << c.name
-  #     hash
-  #   end
-  # 
-  #   # The common prefixes are those with more than one element
-  #   common_prefixes = prefixes.inject([]) do |array, prefix|
-  #     array << prefix[0].to_s if prefix[1].size > 1
-  #     array
-  #   end
-  # 
-  #   # The contents are everything that doesn't have a common prefix
-  #   contents = contents.reject do |c|
-  #     common_prefixes.include? get_prefix(c)
-  #   end
-  # end
-  # 
-  # xml do |x|
-  #     x.ListBucketResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
-  #         x.Name bucket.name
-  #         x.Prefix @input.prefix if @input.prefix
-  #         x.Marker @input.marker if @input.marker
-  #         x.Delimiter @input.delimiter if @input.delimiter
-  #         x.MaxKeys @input['max-keys'] if @input['max-keys']
-  #         x.IsTruncated slot_count > contents.length + opts[:offset].to_i
-  #         contents.each do |c|
-  #             x.Contents do
-  #                 x.Key c.name
-  #                 x.LastModified c.updated_at.getgm.iso8601
-  #                 x.ETag c.etag
-  #                 x.Size c.obj.size
-  #                 x.StorageClass "STANDARD"
-  #                 x.Owner do
-  #                     x.ID c.owner.key
-  #                     x.DisplayName c.owner.login
-  #                 end
-  #             end
-  #         end
-  #         if common_prefixes
-  #           common_prefixes.each do |p|
-  #             x.CommonPrefixes do
-  #               x.Prefix p
-  #             end
-  #           end
-  #         end
-  #     end
-  # end
 end
-# 
-#     private
-#     def get_prefix(c)
-#       c.name.sub(@input.prefix, '').split(@input.delimiter)[0] + @input.delimiter
-#     end
-# end
-##

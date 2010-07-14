@@ -54,7 +54,7 @@ post '/control/buckets' do
 end
 
 # NOTE: This route MUST come before get %r{/control/buckets/([^\/]+)} or things
-#       will break!
+#       will break! -Randall
 get %r{/control/buckets/([^\/]+?)/(.+)} do
   bucket = current_user.buckets.to_enum.find{|b| b.name == params[:captures][0]}
   slot = bucket.slots.to_enum.find{|s| s.file_name == params[:captures][1]}
@@ -90,6 +90,7 @@ get %r{/control/buckets/([^\/]+)} do
     end
   end
   @files = @bucket.slots
+  puts @files.first.bit.grid_io.methods
   @plain = '<script type="text/javascript" src="/js/files.js"></script>'
   haml :control_files
 end
@@ -103,7 +104,7 @@ post %r{/control/buckets/([^\/]+)} do
   only_can_write @bucket
   tempfile = params[:upfile][:tempfile]
   params[:fname] == '' ? filename = params[:upfile][:filename] : filename = params[:fname]
-  slot = @bucket.slots.build(:bit => tempfile.open, :file_name => filename, :access => params[:facl])
+  slot = @bucket.slots.build(:bit => tempfile.open, :file_name => filename, :access => params[:facl], :created_at => Time.now, :updated_at => Time.now)
   unless slot.save!
     throw :halt, [500, "Could not upload file to bucket."]
   end

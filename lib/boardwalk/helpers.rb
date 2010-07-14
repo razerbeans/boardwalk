@@ -44,10 +44,12 @@ helpers do
     raise AccessDenied unless bucket.owned_by? @user
   end
   
+  def aws_only_can_read(bucket)
+    raise AccessDenied unless bucket.readable_by? @user
+  end
+  
   def check_credentials(username, password)
     user = User.first(:login => username)
-    puts "USER PASS "+user.password
-    puts "COMPARISON #{hmac_sha1(password, user.s3secret)}"
     if user.password == hmac_sha1(password, user.s3secret)
       session[:user] = user
       return true
@@ -55,10 +57,13 @@ helpers do
       return false
     end
   end
+
+  def get_prefix(c)
+    c.name.sub(@input['prefix'], '').split(@input['delimiter'])[0] + @input['delimiter']
+  end
   
   def current_user
     @user = User.first(:login => session[:user].login)
-    # return User.first(:login => session[:user].login)
     return @user
   end
   

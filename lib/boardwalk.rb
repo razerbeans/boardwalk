@@ -3,7 +3,7 @@ module Sinatra
     module AWSHandler
         def aws_authenticate
           # puts "Should do env loop."
-          puts @env.inspect
+          # puts @env.inspect
           @amz = {}
           @env.each do |k, v|
             # puts "Running env loop. (#{k}, #{v})"
@@ -26,12 +26,12 @@ module Sinatra
           # @user = Boardwalk::Models::User.find_by_key key
           # @user = User.new(key)
           # if @user and secret != hmac_sha1(options.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
-          @user = User.all(:conditions => {:s3key => key}).first
-          puts "*** USER SET AS: "+@user.inspect+" ***"
+          @user = User.first(:conditions => {:s3key => key})
+          # puts "*** USER SET AS: "+@user.inspect+" ***"
           # if @user.nil?
           #   throw :halt, [500, "User not set?"]
           # end
-          puts "Secret: "+secret+"\nDigest: "+hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
+          # puts "Secret: "+secret+"\nDigest: "+hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
           if @user and secret != hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
              raise BadAuthentication
           end
@@ -47,10 +47,10 @@ end
 
 class Boardwalk < Sinatra::Base
     use Rack::FiberPool
-    helpers Sinatra::Request::AWSHandler
     load 'lib/boardwalk/mimetypes.rb'
     load 'lib/boardwalk/control_routes.rb'
     load 'lib/boardwalk/helpers.rb'
     load 'lib/boardwalk/errors.rb'
+    helpers Sinatra::Request::AWSHandler
     load 'lib/boardwalk/s3_routes.rb'
 end
