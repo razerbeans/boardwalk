@@ -35,7 +35,6 @@ get '/control/buckets/?' do
   login_required
   load_buckets
   @plain = '<script type="text/javascript" src="/js/buckets.js"></script>'
-  puts @buckets.inspect
   @title="Buckets"
   haml :control_buckets
 end
@@ -83,14 +82,12 @@ end
 
 get %r{/control/buckets/([^\/]+)} do
   login_required
-  puts "AHHHH!"
   current_user.buckets.each do |b|
     if b.name == params[:captures].first
       @bucket = b
     end
   end
   @files = @bucket.slots
-  puts @files.first.bit.grid_io.methods
   @plain = '<script type="text/javascript" src="/js/files.js"></script>'
   haml :control_files
 end
@@ -153,7 +150,6 @@ end
 post '/control/users' do
   login_required
   only_superusers
-  puts params.inspect
   superuser = false
   superuser = true if params[:superuser] == 'on'
   throw :halt, [500, "Passwords did not match!"] if params[:password] != params[:password_confirmation]
@@ -174,9 +170,7 @@ end
 post %{/control/users/delete} do
   login_required
   only_superusers
-  puts params.inspect
   @usero = User.all(:conditions => {'login' => params[:login]}).first
-  puts @usero.inspect
   if @usero.login == current_user.login
     error "Suicide is not an option."
   else

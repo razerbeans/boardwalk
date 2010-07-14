@@ -76,7 +76,6 @@ end
 get %r{/([^\/]+)/?} do |e|
   aws_authenticate
   @input = request.params
-  puts "*** INPUT DUMP: "+@input.inspect+" ***"
   bucket = Bucket.all(:conditions => {:name => params[:captures].first}).first
   aws_only_can_read bucket
 
@@ -86,20 +85,16 @@ get %r{/([^\/]+)/?} do |e|
   opts = {:conditions => {}, :order => "name"}
   limit = nil
   if @input['prefix']
-    puts "Prefix detected."
     opts[:conditions] = opts[:conditions].merge({:file_name => /#{@input['prefix']}.*/i})
   end
   if @input['marker']
-    puts "Marker detected."
     opts[:offset] = @input['marker'].to_i
   end
   if @input['max-keys']
-    puts "Max-keys detected."
     opts[:limit] = @input['max-keys'].to_i
   end
   slot_count = Slot.all(:conditions => opts[:conditions]).size
   contents = Slot.all(opts)
-  puts "OPTS: "+opts.inspect
   
   if @input['delimiter']
     @input['prefix'] = '' if @input['prefix'].nil?
