@@ -72,10 +72,8 @@ helpers do
   end
   
   def load_buckets
-    # First, look up the buckets that are owned by the user.
     buckets = current_user.buckets
-    # Second, look up the buckets that the user has access to.
-    
+    # Look up the buckets that the user has access to.
     @buckets = buckets
     @bucket = Bucket.new(:access => CANNED_ACLS['private'])
   end

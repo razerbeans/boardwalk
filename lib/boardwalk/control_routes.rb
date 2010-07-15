@@ -1,8 +1,3 @@
-##
-# This file will contain the routes for the web-based administration 
-# and control.
-##
-
 get '/control/?' do
   login_required
   redirect '/control/buckets'

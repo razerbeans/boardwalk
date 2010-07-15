@@ -1,18 +1,11 @@
 current = File.join(File.dirname(__FILE__))
-##
-# This file will contain routes for the S3 REST API.
-##
 
-##
-# class RService < S3 '/'
-##
 get '/' do
   # @user is set here.
   aws_authenticate
   content_type "application/xml"
   only_authorized
   buckets = @user.buckets
-  # Render XML that is used by the S3 API making call.
   # NOTE: This could be done in an external .builder file, however I'm not sure
   #       how well instance variables can be passed this way. But external 
   #       files might allow the routes themselves to load faster since there 
@@ -38,8 +31,6 @@ get '/' do
   end
 end
 
-##
-# class RBucket < S3 '/([^\/]+)/?'
 put %r{/([^\/]+)/?} do
   aws_authenticate
   only_authorized
