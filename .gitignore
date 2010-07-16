@@ -1,7 +1,0 @@
-.DS_Store
-features/
-webrat.log
-logs/*
-vendor/cache
-Gemfile.lock
-.bundle/
