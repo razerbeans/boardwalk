@@ -1,5 +1,5 @@
-MongoMapper.connection = Mongo::Connection.new('localhost')
-MongoMapper.database = 'boardwalk_development'
+MongoMapper.connection = MONGO_CONN
+MongoMapper.database = MONGO_DB
 
 module IdentityMapAddition 
   def self.included(model) 
@@ -138,16 +138,25 @@ class Slot
   end
 end
 
-user = User.create({
-                    :login => "admin",
-                    :password => "pass@word1",
-                    :email => "admin@boardwalk",
-                    :s3key => "44CF9590006BF252F707",
-                    :s3secret => "OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV",
-                    :created_at => Time.now,
-                    :activated_at => Time.now,
-                    :superuser => true
-                  })
-user.password = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), user.password, user.s3secret)).strip
-user.buckets.build(:name => "admin_bucket", :access => 384, :created_at => Time.now)# << Bucket.new(:name => "_adminbucket", :access => 384)
-user.save
+if User.all.size == 0
+  puts "*** No users found! Creating user 'admin'..."
+  user = User.create({
+                      :login => "admin",
+                      :password => DEFAULT_PASSWORD,
+                      :email => "",
+                      :s3key => "44CF9590006BF252F707",
+                      :s3secret => DEFAULT_SECRET,
+                      :created_at => Time.now,
+                      :activated_at => Time.now,
+                      :superuser => true
+                    })
+  user.password = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), user.password, user.s3secret)).strip
+  user.buckets.build(:name => "admin_bucket", :access => 384, :created_at => Time.now)
+  if user.save
+    puts "*** User 'admin' created! Please log in at http://#{BIND_HOST}/control/login using the following credentials:"
+    puts "\tLogin: admin\n\tPassword:#{DEFAULT_PASSWORD}"
+    puts "*** It is STRONGLY advised that you change this password once logged in!"
+  else
+    puts "*** There was an error creating admin user! Make sure your MongoDB connection information is correct and try running boardwalk again."
+  end
+end

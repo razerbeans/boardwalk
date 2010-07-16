@@ -6,8 +6,9 @@ file storage.
 
 # Requirements #
 ### The Basics ###
-1. Ruby 1.9.*
+1. Ruby >= 1.9
 2. MongoDB
+3. Thin web server (currently the only server tested on)
 3. Bundler
 
 Necessary gems are listed in the Gemfile (bundler should take care of this).

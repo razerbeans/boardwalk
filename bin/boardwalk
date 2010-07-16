@@ -1,0 +1,119 @@
+#!/usr/bin/env ruby
+$:.unshift "./lib"
+require 'rubygems'
+# require 'bundler'
+# Bundler.setup(:default)
+require 'sinatra'
+require 'optparse'
+require 'builder'
+require 'fiber'
+require 'rack/fiber_pool'
+require 'boardwalk'
+require 'haml'
+require 'mongo'
+require 'mongo_mapper'
+require 'joint'
+require 'openssl'
+require 'base64'
+require 'digest/md5'
+require 'boardwalk/mimetypes'
+
+DEFAULT_PASSWORD = 'pass@word1'
+DEFAULT_SECRET = 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
+
+options = OpenStruct.new
+options.host = '127.0.0.1'
+options.port = 3002
+options.environment = :production
+options.server = 'thin'
+options.mongodb_host = 'localhost'
+options.mongodb_port = 27017
+options.mongodb_prefix = 'boardwalk'
+
+opts = OptionParser.new do |opts|
+  opts.banner = "Usage: boardwalk [options] [host] [port]"
+  opts.separator "Default host is #{options.host}; default port is #{options.port.to_s}."
+  
+  opts.separator ""
+  opts.separator "Boardwalk specific options:"
+  
+  opts.on("-e", "--environment ENVIRONMENT",
+          "Environment in which Boardwalk will be run (default: #{options.environment.to_s})") do |e|
+    options.environment = e.to_sym
+  end
+  opts.on("-s", "--server SERVER",
+          "Desired web server software to use. (default: thin)") do |s|
+    puts "Server altered!"
+    options.server = s
+  end
+  
+  opts.separator ""
+  opts.separator "MongoDB specific options:"
+  
+  opts.on("--mongodb-host HOST",
+          "Host address of MongoDB. (default: localhost)") do |h|
+    options.mongodb_host = h
+  end
+  opts.on("--mongodb-port PORT",
+          "Port number of MongoDB. (default: 27017)") do |p|
+    options.mongodb_port = p
+  end
+  opts.on("--mongodb-prefix PREFIX",
+          "Prefix of the MongoDB database. (i.e. 'boardwalk_production' if PREFIX is 'boardwalk' and environment is 'production')") do |p|
+    options.mongodb_prefix = n
+  end
+  
+  opts.separator ""
+  opts.separator "Common options:"
+  
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+end
+
+BIND_HOST = options.host
+
+set :environment, options.environment
+set :root, File.dirname(__FILE__).to_s+'/../'
+MONGO_CONN = Mongo::Connection.new(options.mongodb_host)
+# MongoMapper.database = options.mongodb_prefix.to_s+'_'+options.environment.to_s
+
+configure do
+  set :server, options.server#%w[thin webrick mongrel]
+  set :bind, options.host
+  set :port, options.port
+  set :sessions, true
+  set :show_exceptions, false
+  set :raise_errors, false
+  # set :mongodb_host, options.mongodb_host
+  # set :mongodb_port, options.mongodb_port
+end
+
+configure :development do
+  set :logging, true
+  MONGO_DB = options.mongodb_prefix.to_s+'_development'
+end
+
+configure :production do
+  set :logging, false
+  MONGO_DB = options.mongodb_prefix.to_s+'_production'
+end
+
+load 'boardwalk/models.rb'
+
+BUFSIZE = (4 * 1024)
+RESOURCE_TYPES = %w[acl torrent]
+CANNED_ACLS = {
+    'private' => 0600,
+    'public-read' => 0644,
+    'public-read-write' => 0666,
+    'authenticated-read' => 0640,
+    'authenticated-read-write' => 0660
+}
+READABLE = 0004
+WRITABLE = 0002
+READABLE_BY_AUTH = 0040
+WRITABLE_BY_AUTH = 0020
+
+Boardwalk.run
