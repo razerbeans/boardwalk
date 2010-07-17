@@ -1,5 +1,5 @@
 source :gemcutter
-gem 'sinatra', '1.0'
+gem 'sintra', '1.0'
 gem 'haml', '3.0.1'
 gem 'mongo_mapper', '0.8.2'
 gem 'builder', '2.1.2'
