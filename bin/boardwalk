@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 $:.unshift "./lib"
 require 'rubygems'
+require 'optparse'
+require 'sinatra'
 # require 'bundler'
 # Bundler.setup(:default)
-require 'sinatra'
-require 'optparse'
 require 'builder'
 require 'fiber'
 require 'rack/fiber_pool'
@@ -37,13 +37,10 @@ opts = OptionParser.new do |opts|
   opts.separator ""
   opts.separator "Boardwalk specific options:"
   
-  opts.on("-e", "--environment ENVIRONMENT",
-          "Environment in which Boardwalk will be run (default: #{options.environment.to_s})") do |e|
+  opts.on("-e", "--environment ENVIRONMENT", "Environment in which Boardwalk will be run (default: #{options.environment.to_s})") do |e|
     options.environment = e.to_sym
   end
-  opts.on("-s", "--server SERVER",
-          "Desired web server software to use. (default: thin)") do |s|
-    puts "Server altered!"
+  opts.on("-s", "--server SERVER", "Desired web server software to use. (default: thin)") do |s|
     options.server = s
   end
   
@@ -72,22 +69,23 @@ opts = OptionParser.new do |opts|
   end
 end
 
+opts.parse! ARGV
+options.host = ARGV[0] if ARGV[0]
+options.port = ARGV[1].to_i if ARGV[1]
+
 BIND_HOST = options.host
 
 set :environment, options.environment
 set :root, File.dirname(__FILE__).to_s+'/../'
 MONGO_CONN = Mongo::Connection.new(options.mongodb_host)
-# MongoMapper.database = options.mongodb_prefix.to_s+'_'+options.environment.to_s
 
 configure do
-  set :server, options.server#%w[thin webrick mongrel]
+  set :server, options.server
   set :bind, options.host
   set :port, options.port
   set :sessions, true
   set :show_exceptions, false
   set :raise_errors, false
-  # set :mongodb_host, options.mongodb_host
-  # set :mongodb_port, options.mongodb_port
 end
 
 configure :development do
