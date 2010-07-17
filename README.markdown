@@ -1,7 +1,7 @@
 # About #
 
 Boardwalk is a port of _why's Park Place (an S3 clone) to play nice with Ruby 
-1.9, use the Sinatra web framework, and Mongo/MongoMapper for information and 
+1.9, use the Sinatra web framework, and MongoDB/MongoMapper for information and 
 file storage.
 
 # Requirements #
@@ -19,13 +19,13 @@ To run boardwalk, in the root directory (`boardwalk/`), run:
 	bin/boardwalk
 
 # Customizing #
-If you wish to learn more about customizing boardwalk, just type
+If you wish to learn more about customizing boardwalk, just type:
 
 	bin/boardwalk --help
 
 # Troubleshooting #
 
-While Boardwalk is still under heavy development (read: _incomplete_) you may
+While Boardwalk is still under heavy development so you may
 run into issues. Feel free to report these issues here with a log of the errors
 you are receiving as well as information about your environment.
 
