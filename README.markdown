@@ -7,11 +7,22 @@ file storage.
 # Requirements #
 ### The Basics ###
 1. Ruby >= 1.9
-2. MongoDB
-3. Thin web server (currently the only server tested on)
-3. Bundler
+2. Sinatra 1.0
+3. MongoDB
+4. Thin web server (currently the only server tested on)
+*All additional requirements are listed in the Gemfile.*
 
 Necessary gems are listed in the Gemfile (bundler should take care of this).
+
+# Running #
+To run boardwalk, in the root directory (`boardwalk/`), run:
+
+	bin/boardwalk
+
+# Customizing #
+If you wish to learn more about customizing boardwalk, just type
+
+	bin/boardwalk --help
 
 # Troubleshooting #
 
