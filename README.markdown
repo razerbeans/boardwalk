@@ -9,9 +9,9 @@ file storage.
 1. Ruby >= 1.9
 2. Sinatra 1.0
 3. MongoDB
-4. Thin web server (currently the only server tested on)
+4. Bundler
 
-**All additional requirements are listed in the Gemfile.**
+**Use Bundler to install any necessary gems.**
 
 # Running #
 To run boardwalk, in the root directory (`boardwalk/`), run:
