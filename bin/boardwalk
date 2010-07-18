@@ -3,8 +3,8 @@ $:.unshift "./lib"
 require 'rubygems'
 require 'optparse'
 require 'sinatra'
-# require 'bundler'
-# Bundler.setup(:default)
+require 'bundler'
+Bundler.setup
 require 'builder'
 require 'fiber'
 require 'rack/fiber_pool'
