@@ -75,7 +75,7 @@ options.port = ARGV[1].to_i if ARGV[1]
 
 BIND_HOST = options.host
 
-set :environment, options.environment
+set :environment, options.environment.to_sym
 set :root, File.dirname(__FILE__).to_s+'/../'
 MONGO_CONN = Mongo::Connection.new(options.mongodb_host)
 
