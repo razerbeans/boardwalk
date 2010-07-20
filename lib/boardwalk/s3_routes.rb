@@ -6,10 +6,6 @@ get '/' do
   content_type "application/xml"
   only_authorized
   buckets = @user.buckets
-  # NOTE: This could be done in an external .builder file, however I'm not sure
-  #       how well instance variables can be passed this way. But external 
-  #       files might allow the routes themselves to load faster since there 
-  #       will not be as much pollution in the file.
   builder do |x|
     x.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8"
     x.ListAllMyBucketsResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
@@ -22,7 +18,7 @@ get '/' do
             unless b.destroyed?
               x.Bucket do
                   x.Name b.name
-                  x.CreationDate b.created_at#.getgm.iso8601
+                  x.CreationDate b.created_at
               end
             end
           end
