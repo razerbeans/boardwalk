@@ -21,6 +21,8 @@ require 'boardwalk/mimetypes'
 DEFAULT_PASSWORD = 'pass@word1'
 DEFAULT_SECRET = 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
 
+VERSION = '0.2.0.1'
+
 options = OpenStruct.new
 options.host = '127.0.0.1'
 options.port = 3002
@@ -65,6 +67,11 @@ opts = OptionParser.new do |opts|
   
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
+    exit
+  end
+  
+  opts.on_tail("--version", "Show the current version of Boardwalk") do
+    puts "Boardwalk v" + VERSION
     exit
   end
 end
