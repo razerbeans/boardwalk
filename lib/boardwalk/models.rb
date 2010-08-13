@@ -1,5 +1,8 @@
 MongoMapper.connection = MONGO_CONN
 MongoMapper.database = MONGO_DB
+unless MONGO_USER  == ''
+  MongoMapper.database.authenticate(MONGO_USER, MONGO_PASSWORD)
+end
 
 module IdentityMapAddition 
   def self.included(model) 
@@ -151,7 +154,6 @@ if User.all.size == 0
                       :superuser => true
                     })
   user.password = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new("sha1"), user.password, user.s3secret)).strip
-  user.buckets.build(:name => "admin_bucket", :access => 384, :created_at => Time.now)
   if user.save
     puts "*** User 'admin' created! Please log in at http://#{BIND_HOST}/control/login using the following credentials:"
     puts "\tLogin: admin\n\tPassword:#{DEFAULT_PASSWORD}"

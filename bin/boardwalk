@@ -31,6 +31,8 @@ options.server = 'thin'
 options.mongodb_host = 'localhost'
 options.mongodb_port = 27017
 options.mongodb_prefix = 'boardwalk'
+options.mongodb_user = ''
+options.mongodb_password = ''
 
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: boardwalk [options] [host] [port]"
@@ -61,6 +63,14 @@ opts = OptionParser.new do |opts|
           "Prefix of the MongoDB database. (i.e. 'boardwalk_production' if PREFIX is 'boardwalk' and environment is 'production')") do |p|
     options.mongodb_prefix = n
   end
+  opts.on("--mongodb-user USER",
+          "User to use when connecting to the MongoDB as. (nil by default)") do |u|
+    options.mongodb_user = u
+  end
+  opts.on("--mongodb-password PASSWORD",
+          "Password to use when conncting to MongoDB. (nil by default)") do |p|
+    options.mongodb_password = p
+  end
   
   opts.separator ""
   opts.separator "Common options:"
@@ -84,7 +94,9 @@ BIND_HOST = options.host
 
 set :environment, options.environment.to_sym
 set :root, File.dirname(__FILE__).to_s+'/../'
-MONGO_CONN = Mongo::Connection.new(options.mongodb_host)
+MONGO_CONN = Mongo::Connection.new(options.mongodb_host, options.mongodb_port)
+MONGO_USER = options.mongodb_user
+MONGO_PASSWORD = options.mongodb_password
 
 configure do
   set :server, options.server
