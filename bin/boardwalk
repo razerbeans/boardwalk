@@ -23,16 +23,16 @@ DEFAULT_SECRET = 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
 
 VERSION = '0.2.0.1'
 
-options = OpenStruct.new
-options.host = '127.0.0.1'
-options.port = 3002
-options.environment = :production
-options.server = 'thin'
-options.mongodb_host = 'localhost'
-options.mongodb_port = 27017
-options.mongodb_prefix = 'boardwalk'
-options.mongodb_user = ''
-options.mongodb_password = ''
+File.exists?("config.yaml") ? options = OpenStruct.new(YAML.load(File.open("config.yaml"))) : options = OpenStruct.new
+options.host = '127.0.0.1' if options.host.nil?
+options.port = 3002 if options.port.nil?
+options.environment = :production if options.environment.nil?
+options.server = 'thin' if options.server.nil?
+options.mongodb_host = 'localhost' if options.mongodb_host.nil?
+options.mongodb_port = 27017 if options.mongodb_port.nil?
+options.mongodb_prefix = 'boardwalk' if options.mongodb_prefix.nil?
+options.mongodb_user = '' if options.mongodb_user.nil?
+options.mongodb_password = '' if options.mongodb_password.nil?
 
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: boardwalk [options] [host] [port]"
