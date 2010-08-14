@@ -212,6 +212,7 @@ get '/control/profile' do
 end
 
 post '/control/profile' do
+  @usero = current_user
   posted_info = {}
   params.delete 'password_confirmation'
   params.each { |k,v| posted_info["#{k}"] = "#{v}" if v != '' && k != 'captures' }
