@@ -94,7 +94,8 @@ BIND_HOST = options.host
 
 set :environment, options.environment.to_sym
 set :root, File.dirname(__FILE__).to_s+'/../'
-MONGO_CONN = Mongo::Connection.new(options.mongodb_host, options.mongodb_port)
+MONGO_HOST = options.mongodb_host
+MONGO_PORT = options.mongodb_port
 MONGO_USER = options.mongodb_user
 MONGO_PASSWORD = options.mongodb_password
 

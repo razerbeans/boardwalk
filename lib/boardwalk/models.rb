@@ -1,4 +1,4 @@
-MongoMapper.connection = MONGO_CONN
+MongoMapper.connection = Mongo::Connection.new(MONGO_HOST, MONGO_PORT)
 MongoMapper.database = MONGO_DB
 unless MONGO_USER  == ''
   MongoMapper.database.authenticate(MONGO_USER, MONGO_PASSWORD)
