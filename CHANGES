@@ -1,3 +1,9 @@
+08-15-2010	Version 0.2.0.3
+===========================
+* Boardwalk can now be configured by creating a config.yaml file in the root
+	directory.
+* bin/boardwalk is now bin/boardwalk.rb to prevent issues on certain systems.
+
 08-14-2010	Version 0.2.0.2
 ===========================
 * Added version, mongodb_user, and mongodb_password command line arguments.
