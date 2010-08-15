@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 $:.unshift "./lib"
 require 'rubygems'
 require 'optparse'

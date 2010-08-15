@@ -16,12 +16,12 @@ file storage.
 # Running #
 To run boardwalk, in the root directory (`boardwalk/`), run:
 
-	bin/boardwalk
+	ruby bin/boardwalk.rb
 
 # Customizing #
 If you wish to learn more about customizing boardwalk, just type:
 
-	bin/boardwalk --help
+	ruby bin/boardwalk.rb --help
 
 # Troubleshooting #
 
