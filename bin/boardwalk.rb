@@ -20,7 +20,7 @@ require 'boardwalk/mimetypes'
 DEFAULT_PASSWORD = 'pass@word1'
 DEFAULT_SECRET = 'OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV'
 
-VERSION = '0.2.0.1'
+VERSION = '0.2.0.3'
 
 File.exists?("config.yaml") ? options = OpenStruct.new(YAML.load(File.open("config.yaml"))) : options = OpenStruct.new
 options.host = '127.0.0.1' if options.host.nil?
