@@ -25,7 +25,7 @@ If you wish to learn more about customizing boardwalk, just type:
 
 # Troubleshooting #
 
-While Boardwalk is still under heavy development so you may
+While Boardwalk is still under heavy development, you may
 run into issues. Feel free to report these issues here with a log of the errors
 you are receiving as well as information about your environment.
 
