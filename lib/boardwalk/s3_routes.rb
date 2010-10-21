@@ -136,6 +136,5 @@ get %r{/([^\/]+)/?} do |e|
             end
           end
       end
-      puts x.inspect
   end
 end
