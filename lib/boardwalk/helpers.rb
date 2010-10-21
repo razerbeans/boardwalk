@@ -5,6 +5,7 @@ helpers do
       k = k.downcase.gsub('_', '-')
       @amz[$1] = v.strip if k =~ /^http-x-amz-([-\w]+)$/
     end
+    puts @env.inspect
     date = (@env['HTTP_X_AMZ_DATE'] || @env['HTTP_DATE'])
     auth, key, secret = *@env['HTTP_AUTHORIZATION'].to_s.match(/^AWS (\w+):(.+)$/)
     uri = @env['PATH_INFO']
@@ -79,7 +80,7 @@ helpers do
   end
 
   def get_prefix(c)
-    c.name.sub(@input['prefix'], '').split(@input['delimiter'])[0] + @input['delimiter']
+    c.file_name.sub(@input['prefix'], '').split(@input['delimiter'])[0] + @input['delimiter']
   end
   
   def current_user

@@ -88,9 +88,10 @@ get %r{/([^\/]+)/?} do |e|
   
     # Build a hash of { :prefix => content_key }. The prefix will not include the supplied @input.prefix.
     prefixes = contents.inject({}) do |hash, c|
+      puts "C: " + c.inspect
       prefix = get_prefix(c).to_sym
       hash[prefix] = [] unless hash[prefix]
-      hash[prefix] << c.name
+      hash[prefix] << c.file_name
       hash
     end
   
@@ -117,7 +118,7 @@ get %r{/([^\/]+)/?} do |e|
           contents.each do |c|
               x.Contents do
                   x.Key c.file_name
-                  x.LastModified c.bit.upload_date
+                  x.LastModified c.bit.upload_date.strftime("%Y-%m-%dT%H:%M:%S.000%Z")
                   x.ETag c.bit.grid_io.server_md5
                   x.Size c.bit.grid_io.file_length.to_i
                   x.StorageClass "STANDARD"
@@ -135,5 +136,6 @@ get %r{/([^\/]+)/?} do |e|
             end
           end
       end
+      puts x.inspect
   end
 end
