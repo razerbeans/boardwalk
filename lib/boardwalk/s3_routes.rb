@@ -18,7 +18,7 @@ get '/' do
             unless b.destroyed?
               x.Bucket do
                   x.Name b.name
-                  x.CreationDate b.created_at
+                  x.CreationDate b.created_at.strftime("%Y-%m-%dT%H:%M:%S.000%Z") # Must match Amazon API Format (i.e. "2006-02-03T16:45:09.000Z")
               end
             end
           end
