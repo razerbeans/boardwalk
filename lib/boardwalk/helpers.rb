@@ -5,7 +5,7 @@ helpers do
       k = k.downcase.gsub('_', '-')
       @amz[$1] = v.strip if k =~ /^http-x-amz-([-\w]+)$/
     end
-    puts @env.inspect
+    # puts @env.inspect
     date = (@env['HTTP_X_AMZ_DATE'] || @env['HTTP_DATE'])
     auth, key, secret = *@env['HTTP_AUTHORIZATION'].to_s.match(/^AWS (\w+):(.+)$/)
     uri = @env['PATH_INFO']
@@ -14,6 +14,7 @@ helpers do
     @amz.sort.each do |k, v|
         canonical[-1,0] = "x-amz-#{k}:#{v}"
     end
+    # puts "Environment info: " + @env.inspect
     @user = User.first(:conditions => {:s3key => key})
     if @user and secret != hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
        raise BadAuthentication

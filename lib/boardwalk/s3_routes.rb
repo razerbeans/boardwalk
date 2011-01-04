@@ -1,11 +1,13 @@
 current = File.join(File.dirname(__FILE__))
 
 get '/' do
+  # puts "\e[1;32mLine 3: get '/'\e[0m"
   # @user is set here.
   aws_authenticate
   content_type "application/xml"
   only_authorized
   buckets = @user.buckets
+  # puts "\e[1;31mBuckets:\e[0m " + buckets.inspect
   builder do |x|
     x.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8"
     x.ListAllMyBucketsResult :xmlns => "http://s3.amazonaws.com/doc/2006-03-01/" do
@@ -28,6 +30,7 @@ get '/' do
 end
 
 put %r{/([^\/]+)/?} do
+  # puts "\e[1;32mLine 32: put %r{/([^\/]+)/?}\e[0m"
   aws_authenticate
   only_authorized
   bucket_name = params[:captures].first
@@ -44,6 +47,7 @@ put %r{/([^\/]+)/?} do
 end
 
 delete %r{/([^\/]+)/?} do
+  # puts "\e[1;32mLine 49: delete %r{/([^\/]+)/?}\e[0m"
   aws_authenticate
   bucket = Bucket.all(:conditions => {:name => params[:captures].first}).first
   aws_only_owner_of bucket
@@ -61,6 +65,7 @@ delete %r{/([^\/]+)/?} do
 end
 
 get %r{/([^\/]+?)/(.+)} do 
+  # puts "\e[1;32mLine 67: get %r{/([^\/]+?)/(.+)}\e[0m"
   aws_authenticate
   bucket = @user.buckets.to_enum.find{|b| b.name == params[:captures][0]}
   slot = bucket.slots.to_enum.find{|s| s.file_name == params[:captures][1]}
@@ -88,15 +93,17 @@ get %r{/([^\/]+?)/(.+)} do
 end
 
 get %r{/([^\/]+)/?} do |e|
+  # puts "\e[1;32mLine 95: get %r{/([^\/]+)/?}\e[0m"
   aws_authenticate
   @input = request.params
   bucket = Bucket.all(:conditions => {:name => params[:captures].first}).first
+  # puts "\e[1;31mBucket:\e[0m " + bucket.inspect
   aws_only_can_read bucket
 
   if @input.has_key? 'torrent'
       raise NotImplemented
   end
-  opts = {:conditions => {}, :order => "name"}
+  opts = {:conditions => {:bucket_id => bucket.id}, :order => "name"}
   limit = nil
   if @input['prefix']
     opts[:conditions] = opts[:conditions].merge({:file_name => /#{@input['prefix']}.*/i})
@@ -110,12 +117,14 @@ get %r{/([^\/]+)/?} do |e|
   slot_count = Slot.all(:conditions => opts[:conditions]).size
   contents = Slot.all(opts)
   
+  # puts "Input info: " + @input.to_s
+  # puts "Opts: " + opts.to_s
+  
   if @input['delimiter']
     @input['prefix'] = '' if @input['prefix'].nil?
   
     # Build a hash of { :prefix => content_key }. The prefix will not include the supplied @input.prefix.
     prefixes = contents.inject({}) do |hash, c|
-      puts "C: " + c.inspect
       prefix = get_prefix(c).to_sym
       hash[prefix] = [] unless hash[prefix]
       hash[prefix] << c.file_name
@@ -132,6 +141,8 @@ get %r{/([^\/]+)/?} do |e|
     contents = contents.reject do |c|
       common_prefixes.include? get_prefix(c)
     end
+    
+    # puts "\e[1;31mContents:\e[0m " + contents.inspect
   end
   
   builder do |x|
