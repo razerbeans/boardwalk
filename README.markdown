@@ -7,7 +7,7 @@ file storage.
 # Requirements #
 ### The Basics ###
 1. Ruby >= 1.9
-2. Sinatra 1.0
+2. Sinatra 1.0 (or greater)
 3. MongoDB
 4. Bundler
 
