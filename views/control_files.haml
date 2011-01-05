@@ -25,6 +25,9 @@
 									%input{:type => "hidden", :value => "#{file.bucket.name}", :name => "bucket_name", :class => "bucket_name"}
 									%input{:type => "hidden", :value => "file", :name => "deletion_type", :class => "deletion_type"}
 									%input{:type => "hidden", :value => "#{file.file_name}", :name => "file_name", :class => "file_name"}
+								%a{:href => "/control/buckets/#{file.bucket.name}/#{file.file_name}", :title => "Download file #{file.file_name}"}
+									Download
+								&nbsp;
 								%a.delete_file{:title => "Delete file #{file.file_name}", :style => "cursor:pointer;"}
 									Delete
 					%td
