@@ -70,7 +70,7 @@ get %r{/control/buckets/([^\/]+?)/(.+)} do
   end
   tempf = Tempfile.new("#{slot.file_name}")
   tempf.puts slot.bit.data
-  send_file(tempf.path, {:disposition => 'attachment', :filename => slot.file_name, :type => slot.bit_type})
+  send_file(tempf.path, {:disposition => 'attachment', :filename => slot.file_name, :type => slot.bit_type, :length => slot.bit_size})
   tempf.close!
   status 200
 end

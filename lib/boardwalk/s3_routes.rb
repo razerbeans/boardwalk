@@ -69,8 +69,9 @@ get %r{/([^\/]+?)/(.+)} do
   aws_authenticate
   bucket = @user.buckets.to_enum.find{|b| b.name == params[:captures][0]}
   slot = bucket.slots.to_enum.find{|s| s.file_name == params[:captures][1]}
+  # puts "\e[1;32mBit size:\e[0m " + slot.bit_size.to_s
   aws_only_can_read slot
-  
+
   since = Time.httpdate(request.env['HTTP_IF_MODIFIED_SINCE']) rescue nil
   if since && (slot.bit.upload_date) <= since
     raise NotModified
@@ -82,14 +83,10 @@ get %r{/([^\/]+?)/(.+)} do
   if request.env['HTTP_IF_NONE_MATCH'] && (slot.md5 == request.env['HTTP_IF_NONE_MATCH'])
     raise NotModified
   end
-  if request.env['HTTP_RANGE']
-    raise NotImplemented
-  end
   tempf = Tempfile.new("#{slot.file_name}")
   tempf.puts slot.bit.data
-  send_file(tempf.path, {:disposition => 'attachment', :filename => slot.file_name, :type => slot.bit_type})
+  send_file(tempf.path, {:disposition => 'attachment', :filename => slot.file_name, :type => slot.bit_type, :length => slot.bit_size})
   tempf.close!
-  status 200
 end
 
 get %r{/([^\/]+)/?} do |e|

@@ -14,7 +14,7 @@ helpers do
     @amz.sort.each do |k, v|
         canonical[-1,0] = "x-amz-#{k}:#{v}"
     end
-    # puts "Environment info: " + @env.inspect
+    # puts "\e[1;32mEnvironment info:\e[0m" + @env.inspect
     @user = User.first(:conditions => {:s3key => key})
     if @user and secret != hmac_sha1(@user.s3secret, canonical.map{|v|v.to_s.strip} * "\n")
        raise BadAuthentication
